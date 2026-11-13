@@ -1,0 +1,263 @@
+/* ==============================================
+   会员中心 /member（mem- 前缀，同站内哑光深色+发丝金）
+   ============================================== */
+
+.mem-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-height: 50vh;
+}
+
+/* 门禁态 */
+.mem-gate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 4rem 1.5rem;
+  text-align: center;
+}
+.mem-gate p {
+  color: #a1a1aa;
+  font-size: 0.95rem;
+}
+.mem-gate-btn {
+  display: inline-block;
+  padding: 0.55rem 1.4rem;
+  border: 1px solid rgba(168, 139, 70, 0.45);
+  border-radius: 0.5rem;
+  color: #d4a853;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.mem-gate-btn:hover {
+  border-color: rgba(168, 139, 70, 0.8);
+  background: rgba(168, 139, 70, 0.08);
+}
+
+/* 通用小按钮（与后台同款） */
+.mem-btn {
+  padding: 0.5rem 1.1rem;
+  background: transparent;
+  border: 1px solid rgba(168, 139, 70, 0.45);
+  border-radius: 0.5rem;
+  color: #d4a853;
+  font-size: 0.88rem;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  display: inline-block;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+.mem-btn:hover:not(:disabled) {
+  border-color: rgba(168, 139, 70, 0.85);
+  background: rgba(168, 139, 70, 0.1);
+}
+.mem-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.mem-btn--ghost {
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #d4d4d8;
+}
+.mem-btn--ghost:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.04);
+}
+.mem-btn--danger {
+  border-color: rgba(229, 72, 77, 0.35);
+  color: #e5484d;
+}
+.mem-btn--danger:hover:not(:disabled) {
+  border-color: rgba(229, 72, 77, 0.9);
+  background: rgba(229, 72, 77, 0.1);
+  color: #f16a6e;
+}
+
+/* 卡片网格 */
+.mem-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+@media (max-width: 900px) {
+  .mem-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.mem-card {
+  background: rgba(24, 24, 27, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.4rem;
+  transition: border-color 0.3s;
+}
+.mem-card:hover {
+  border-color: rgba(168, 139, 70, 0.25);
+}
+.mem-card-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #a88b46;
+  margin-bottom: 0.7rem;
+  font-weight: 600;
+}
+
+/* 账号卡 */
+.mem-name {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #e4e4e7;
+  line-height: 1.2;
+}
+.mem-badge {
+  display: inline-block;
+  margin-left: 0.6rem;
+  padding: 0.12rem 0.6rem;
+  border: 1px solid rgba(168, 139, 70, 0.5);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  color: #d4a853;
+  vertical-align: middle;
+}
+.mem-sub {
+  margin-top: 0.5rem;
+  font-size: 0.82rem;
+  color: #71717a;
+}
+.mem-num {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #d4a853;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.mem-num-unit {
+  font-size: 0.85rem;
+  color: #a1a1aa;
+  font-weight: 400;
+}
+.mem-card-actions {
+  margin-top: 0.9rem;
+}
+
+/* 用量进度条 */
+.mem-meter {
+  margin-top: 0.6rem;
+}
+.mem-meter-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #a1a1aa;
+  margin-bottom: 0.3rem;
+}
+.mem-meter-head b {
+  color: #e4e4e7;
+  font-variant-numeric: tabular-nums;
+}
+.mem-track {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.mem-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(168, 139, 70, 0.5), rgba(212, 168, 83, 0.95));
+  border-radius: 4px;
+  min-width: 2px;
+}
+
+/* 表单 */
+.mem-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 0.7rem;
+  max-width: 360px;
+}
+.mem-input {
+  padding: 0.55rem 0.85rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  color: #e4e4e7;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.mem-input:focus {
+  border-color: rgba(168, 139, 70, 0.5);
+}
+.mem-input::placeholder {
+  color: #52525b;
+}
+.mem-hint {
+  font-size: 0.72rem;
+  color: #52525b;
+  margin-top: 0.8rem;
+  line-height: 1.6;
+}
+.mem-msg {
+  font-size: 0.85rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: 0.5rem;
+}
+.mem-msg--ok {
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  background: rgba(74, 222, 128, 0.08);
+  color: #86efac;
+}
+.mem-msg--err {
+  border: 1px solid rgba(229, 72, 77, 0.4);
+  background: rgba(229, 72, 77, 0.08);
+  color: #f16a6e;
+}
+
+/* 设备列表 */
+.mem-devices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.7rem;
+}
+.mem-dev {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.5rem;
+  font-size: 0.84rem;
+  color: #a1a1aa;
+}
+.mem-dev b {
+  color: #e4e4e7;
+  font-weight: 600;
+}
+.mem-dev-now {
+  font-size: 0.7rem;
+  color: #d4a853;
+  border: 1px solid rgba(168, 139, 70, 0.4);
+  border-radius: 999px;
+  padding: 0.06rem 0.5rem;
+}
+
+.mem-loading {
+  color: #71717a;
+  font-size: 0.9rem;
+  padding: 2rem 0;
+  text-align: center;
+}
+.mem-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}

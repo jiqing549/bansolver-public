@@ -1,0 +1,67 @@
+/* /guide 攻略页：延用站点 token（哑光深色 + 发丝金线），版式走安静的长文节奏 */
+
+.guide-body {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding-bottom: 1rem;
+}
+
+.guide-section {
+  margin-top: 3rem;
+}
+
+.guide-section h2 {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--color-text);
+  margin: 0 0 0.9rem;
+  padding-left: 0.85rem;
+  border-left: 2px solid var(--color-gold);
+}
+
+.guide-section p,
+.guide-section li {
+  color: var(--color-text-muted);
+  line-height: 1.85;
+  margin: 0.55rem 0;
+  font-size: 0.95rem;
+}
+
+.guide-section ol,
+.guide-section ul {
+  padding-left: 1.4rem;
+}
+
+.guide-section a {
+  color: var(--color-gold-light);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(168, 139, 70, 0.35);
+  transition: border-color 0.15s ease;
+}
+
+.guide-section a:hover {
+  border-bottom-color: var(--color-gold-light);
+}
+
+.guide-divider {
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  margin: 3rem 0 0;
+}
+
+.guide-faq div {
+  margin-bottom: 1.15rem;
+}
+
+.guide-faq dt {
+  color: var(--color-text);
+  font-weight: 500;
+  margin-bottom: 0.3rem;
+}
+
+.guide-faq dd {
+  margin: 0;
+  color: var(--color-text-muted);
+  line-height: 1.8;
+  font-size: 0.95rem;
+}

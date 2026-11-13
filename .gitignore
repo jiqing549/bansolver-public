@@ -1,0 +1,62 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# cloudflare wrangler local dev state
+.wrangler
+
+# ban2note R2 本地备份（牌谱含隐私，不上传 Git；README 手册除外）
+/data/*
+!/data/README.md
+
+# 本地开发杂项
+/.zcode/
+__pycache__/
+nul
+
+# handscope 独立项目（自带仓库管理，不混入主站）
+/handscope/
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# tsc 编译产物（截图验证法遗留）：与 src 内 .ts 同名会被 webpack 优先命中，且 ES5 下放会弄坏 matchAll 迭代
+src/**/*.js
+
+# 翻前树超大套图走 R2 分发（Pages 25MiB 单文件限 + GitHub 100MB 限），转换产物勿进 git/部署
+public/preflop-tree/gg-9max.json

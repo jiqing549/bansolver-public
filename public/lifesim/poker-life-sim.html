@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>德州扑克职业牌手人生模拟器</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'PingFang SC','Microsoft YaHei','Helvetica Neue',sans-serif;background:#0a0f0d;color:#e8e0d0;min-height:100vh;overflow-x:hidden}
+#app{max-width:640px;margin:0 auto;padding:16px;min-height:100vh;display:flex;flex-direction:column}
+
+/* BG particles */
+.bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:0.08}
+
+/* Title screen */
+.title-screen{z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:90vh;text-align:center;gap:24px}
+.title-screen h1{font-size:2.2em;background:linear-gradient(180deg,#d4a843,#f0d080,#d4a843);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:2px}
+.title-screen .subtitle{color:#7a9a80;font-size:1.1em;letter-spacing:4px}
+.title-screen .suits{font-size:1.8em;color:#d4a843;opacity:0.6;margin:12px 0}
+.btn{display:inline-block;padding:14px 48px;border:none;border-radius:8px;font-size:1.1em;font-weight:bold;cursor:pointer;transition:all 0.2s;letter-spacing:2px;font-family:inherit}
+.btn-primary{background:linear-gradient(135deg,#1a5c38,#2a8c58);color:#f0e8c0;box-shadow:0 4px 20px rgba(26,92,56,0.4)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(26,92,56,0.6)}
+.btn-primary:active{transform:scale(0.96)}
+.btn-secondary{background:rgba(212,168,67,0.15);color:#d4a843;border:1px solid rgba(212,168,67,0.3)}
+.btn-secondary:hover{background:rgba(212,168,67,0.25)}
+.btn-ghost{background:transparent;color:#7a9a80;border:1px solid #2a3a30;font-size:0.95em;padding:10px 32px}
+.btn-ghost:hover{background:rgba(122,154,128,0.1)}
+
+/* Creation screen */
+.creation-screen{z-index:1;display:flex;flex-direction:column;gap:20px;padding:20px 0}
+.section-title{font-size:1.2em;color:#d4a843;letter-spacing:2px;text-align:center;margin-bottom:8px}
+.bg-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bg-card{background:linear-gradient(145deg,#1a2820,#152018);border:2px solid #2a3a30;border-radius:10px;padding:16px;cursor:pointer;transition:all 0.2s;text-align:center}
+.bg-card:hover{border-color:#1a5c38;box-shadow:0 0 20px rgba(26,92,56,0.2);transform:translateY(-2px)}
+.bg-card.selected{border-color:#d4a843;box-shadow:0 0 24px rgba(212,168,67,0.3);background:linear-gradient(145deg,#1a2a20,#1a2018)}
+.bg-card .bg-name{font-size:1.05em;font-weight:bold;color:#f0e8c0;margin-bottom:8px}
+.bg-card .bg-desc{font-size:0.8em;color:#7a9a80;margin-bottom:6px}
+.bg-card .bg-stats{font-size:0.75em;color:#5a7a60;line-height:1.6}
+.talent-pick{display:flex;flex-direction:column;gap:10px}
+.talent-card{cursor:pointer;padding:14px 16px;border-radius:8px;transition:all 0.2s;border:2px solid transparent;position:relative}
+.talent-card:hover{transform:translateX(4px)}
+.talent-card.selected{border-color:#d4a843!important;box-shadow:0 0 16px rgba(212,168,67,0.25)}
+.talent-card .talent-name{font-weight:bold;font-size:1em;margin-bottom:4px}
+.talent-card .talent-desc{font-size:0.82em;color:#8a9a80}
+.talent-common{background:#1a2020;border-color:#2a3a30;color:#c0c8b8}
+.talent-rare{background:#1a1a28;border-color:#2a2a48;color:#b0b8e0}
+.talent-epic{background:#1a1a20;border-color:#3a2a48;color:#c0b0e0}
+.talent-legendary{background:#1a1a18;border-color:#4a3a20;color:#e0d0a0}
+
+/* Main game */
+.game-screen{z-index:1;display:flex;flex-direction:column;gap:12px;flex:1}
+.status-bar{background:#111a15;border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px 16px;border:1px solid #1a2820}
+@media(min-width:480px){.status-bar{grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr}}
+.stat-item{display:flex;flex-direction:column;gap:2px}
+.stat-label{font-size:0.7em;color:#5a7a60;text-transform:uppercase;letter-spacing:1px}
+.stat-value{font-size:1.05em;font-weight:bold}
+.stat-bar{height:3px;border-radius:2px;background:#1a2820;margin-top:2px;overflow:hidden}
+.stat-bar-fill{height:100%;border-radius:2px;transition:width 0.5s}
+.stat-bar-fill.bankroll{background:linear-gradient(90deg,#1a5c38,#2a8c58)}
+.stat-bar-fill.skill{background:linear-gradient(90deg,#1a4a8c,#2a6ac0)}
+.stat-bar-fill.mental{background:linear-gradient(90deg,#5a2a8c,#8a4ac0)}
+.stat-bar-fill.reputation{background:linear-gradient(90deg,#8a6a1a,#c0a020)}
+.stat-bar-fill.health{background:linear-gradient(90deg,#8c2a2a,#c04a4a)}
+.stat-bar-fill.age{background:linear-gradient(90deg,#5a5a5a,#8a8a8a)}
+.age-indicator{font-size:0.9em;color:#7a9a80;text-align:center;margin:4px 0}
+.event-card{background:linear-gradient(160deg,#1a2820,#142018);border:1px solid #2a3a30;border-radius:12px;padding:20px;animation:fadeIn 0.4s ease;position:relative;overflow:hidden}
+.event-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,#d4a843,#1a5c38)}
+.event-title{font-size:1.15em;font-weight:bold;color:#f0e8c0;margin-bottom:10px;letter-spacing:1px}
+.event-text{font-size:0.95em;color:#b0b8a8;line-height:1.7;margin-bottom:16px}
+.event-choices{display:flex;flex-direction:column;gap:8px}
+.choice-btn{display:block;width:100%;text-align:left;padding:12px 16px;border-radius:8px;border:1px solid #2a4a38;background:rgba(26,92,56,0.1);color:#d0d8c0;font-size:0.95em;cursor:pointer;transition:all 0.2s;font-family:inherit;line-height:1.5}
+.choice-btn:hover{background:rgba(26,92,56,0.25);border-color:#1a5c38;transform:translateX(4px)}
+.choice-btn:active{transform:scale(0.98)}
+.risk-tag{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:4px;font-size:0.72em;font-weight:bold;vertical-align:middle;white-space:nowrap}
+.risk-high{background:rgba(192,74,74,0.18);color:#e08080;border:1px solid rgba(192,74,74,0.35)}
+.risk-mid{background:rgba(212,168,67,0.15);color:#d4a843;border:1px solid rgba(212,168,67,0.3)}
+.risk-safe{background:rgba(42,140,88,0.18);color:#6ad090;border:1px solid rgba(42,140,88,0.35)}
+.feedback-toast{text-align:center;padding:16px;color:#d4a843;font-size:0.95em;animation:fadeInOut 2s ease;margin:8px 0;line-height:1.6}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeInOut{0%{opacity:0;transform:translateY(4px)}20%{opacity:1;transform:translateY(0)}80%{opacity:1}100%{opacity:0;transform:translateY(-4px)}}
+.floating-effect{position:fixed;pointer-events:none;font-weight:bold;font-size:1.6em;z-index:100;animation:floatUp 1.6s cubic-bezier(0.2,0.8,0.3,1) forwards;text-shadow:0 2px 12px rgba(0,0,0,0.9),0 0 24px rgba(212,168,67,0.4);letter-spacing:1px;white-space:nowrap}
+@keyframes floatUp{0%{opacity:0;transform:translateY(20px) scale(0.6)}15%{opacity:1;transform:translateY(0) scale(1.25)}30%{transform:translateY(-4px) scale(1)}60%{opacity:1;transform:translateY(-30px) scale(1)}100%{opacity:0;transform:translateY(-70px) scale(0.95)}}
+@keyframes statPulse{0%{transform:scale(1)}20%{transform:scale(1.4);filter:drop-shadow(0 0 8px currentColor)}100%{transform:scale(1);filter:none}}
+.stat-value.changed{animation:statPulse 0.9s ease;display:inline-block;transform-origin:center}
+
+/* Ending */
+.ending-screen{z-index:1;display:flex;flex-direction:column;align-items:center;gap:20px;padding:30px 0;text-align:center}
+.ending-title{font-size:1.8em;font-weight:bold;background:linear-gradient(180deg,#d4a843,#f0d080);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:2px}
+.ending-desc{font-size:1em;color:#b0b8a8;line-height:1.8;max-width:460px}
+.ending-stats{background:#111a15;border-radius:10px;padding:20px;width:100%;max-width:400px;border:1px solid #1a2820}
+.ending-stats .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a2820;font-size:0.9em}
+.ending-stats .row:last-child{border-bottom:none}
+.ending-stats .label{color:#7a9a80}
+.ending-stats .val{color:#f0e8c0;font-weight:bold}
+.radar-chart{margin:12px auto;position:relative;width:160px;height:160px}
+.radar-chart canvas{width:100%;height:100%}
+
+/* Year review */
+.year-review{background:rgba(26,40,32,0.6);border-radius:8px;padding:12px;margin:8px 0;border:1px dashed #2a3a30;font-size:0.85em;color:#7a9a80;line-height:1.6;text-align:center}
+
+/* Misc */
+.hidden{display:none!important}
+.text-gold{color:#d4a843}
+.text-green{color:#2a8c58}
+.text-red{color:#c04a4a}
+.text-muted{color:#5a7a60}
+.sep{color:#3a4a38;margin:0 6px}
+.flag-tag{display:inline-block;background:rgba(212,168,67,0.15);color:#d4a843;font-size:0.7em;padding:2px 8px;border-radius:4px;margin:2px 4px}
+</style>
+</head>
+<body>
+<canvas class="bg-canvas" id="bgCanvas"></canvas>
+<div id="app"></div>
+
+<script>
+// ============================================================
+// BACKGROUND PARTICLE EFFECT
+// ============================================================
+(function initBg(){
+  const c=document.getElementById('bgCanvas'),ctx=c.getContext('2d');
+  const suits=['♠','♥','♦','♣'];
+  const particles=[];
+  function resize(){c.width=window.innerWidth;c.height=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  for(let i=0;i<30;i++)particles.push({x:Math.random()*c.width,y:Math.random()*c.height,vx:(Math.random()-0.5)*0.3,vy:-0.2-Math.random()*0.5,s:suits[Math.floor(Math.random()*4)],size:12+Math.random()*18,o:0.3+Math.random()*0.5});
+  function anim(){
+    ctx.clearRect(0,0,c.width,c.height);
+    for(let p of particles){
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.y<-40){p.y=c.height+20;p.x=Math.random()*c.width}
+      if(p.x<-40)p.x=c.width+20;if(p.x>c.width+40)p.x=-20;
+      ctx.fillStyle=`rgba(212,168,67,${p.o*0.4})`;ctx.font=`${p.size}px serif`;
+      ctx.fillText(p.s,p.x,p.y);
+    }
+    requestAnimationFrame(anim);
+  }
+  anim();
+})();
+
+// ============================================================
+// DATA: TALENTS (15 total)
+// ============================================================
+const TALENTS=[
+  {id:0,name:'读心术',desc:'你能感知对手的微表情。心理+8，技术+3。',rarity:'legendary',color:'#d4a843',effect:{mental:8,skill:3}},
+  {id:1,name:'数学天才',desc:'你天生对数字敏感，EV计算像呼吸。技术+6。',rarity:'legendary',color:'#d4a843',effect:{skill:6}},
+  {id:2,name:'钢铁意志',desc:'经历过最黑暗的下风期也面不改色。心理+8，且心理值下限锁定30、下风期损失减半。',rarity:'epic',color:'#c0b0e0',effect:{mental:8}},
+  {id:3,name:'社交达人',desc:'牌桌上牌桌外都是万人迷。声望+6。',rarity:'rare',color:'#b0b8e0',effect:{reputation:6}},
+  {id:4,name:'夜猫子',desc:'凌晨三点是你最好的时刻。技术+4，但体能-8。',rarity:'rare',color:'#b0b8e0',effect:{skill:4,health:-8}},
+  {id:5,name:'欧皇体质',desc:'你总能在关键pot hit到那张outs。运气好，初始资金+8000。',rarity:'epic',color:'#c0b0e0',effect:{bankroll:8000}},
+  {id:6,name:'扑克世家',desc:'你爸打牌，你爷爷也打牌。技术+7。',rarity:'legendary',color:'#d4a843',effect:{skill:7}},
+  {id:7,name:'直觉流',desc:'你的gut feeling就是solver。技术+5。',rarity:'rare',color:'#b0b8e0',effect:{skill:5}},
+  {id:8,name:'数据狂',desc:'你拥有50万手牌的数据库。技术+5。',rarity:'rare',color:'#b0b8e0',effect:{skill:5}},
+  {id:9,name:'铁人',desc:'连打48小时不眨眼。体能+10，且体能力下限锁定20。',rarity:'epic',color:'#c0b0e0',effect:{health:10}},
+  {id:10,name:'卷王',desc:'别人一周学10小时，你学40小时。技术+4，但体能-4。',rarity:'rare',color:'#b0b8e0',effect:{skill:4,health:-4}},
+  {id:11,name:'人脉王',desc:'你微信里躺着三个WSOP金手链得主。声望+6。',rarity:'epic',color:'#c0b0e0',effect:{reputation:6}},
+  {id:12,name:'极限挑战者',desc:'你享受在刀尖上跳舞。所有收益和损失都×1.5——高风险高回报。',rarity:'epic',color:'#c0b0e0',effect:{}},
+  {id:13,name:'锦鲤本鲤',desc:'运气是你的超能力。每10年天降一笔小横财，初始资金+5000。',rarity:'legendary',color:'#d4a843',effect:{bankroll:5000}},
+  {id:14,name:'哲学家',desc:'你打牌不只是为了赢钱。心理+6。',rarity:'rare',color:'#b0b8e0',effect:{mental:6}},
+  {id:15,name:'电竞出身',desc:'你打星际/英雄联盟出身，APM 300+。技术+5。（原型：Tony Lin从星际争霸转扑克）',rarity:'rare',color:'#b0b8e0',effect:{skill:5}},
+  {id:16,name:'浪人血统',desc:'你是为高额桌而生的赌徒。初始资金+20000，但心态-8。（原型：Tom Dwan澳门私局浪人）',rarity:'epic',color:'#c0b0e0',effect:{bankroll:20000,mental:-8}},
+  {id:17,name:'教练体质',desc:'你擅长把复杂的东西讲明白。声望+4，心理+4。（原型：Jonathan Little、田浩转型教练）',rarity:'rare',color:'#b0b8e0',effect:{reputation:4,mental:4}},
+  // ===== Phase 4 新增天赋（18→36）机制多样化 =====
+  // 机制型：改变规则的强力天赋
+  {id:18,name:'范围大师',desc:'起手范围精准如教科书。技术+6，你几乎不会犯"不该进的牌进了"的低级错误。',rarity:'common',color:'#9ad',effect:{skill:6}},
+  {id:19,name:'读心之眼',desc:'你能读出对手微表情里的破绽。技术+3，心理+3——更难被tilt击垮。',rarity:'rare',color:'#b0b8e0',effect:{skill:3,mental:3}},
+  {id:20,name:'资金堡垒',desc:'你的BRM纪律登峰造极。资金+15000，且你的心态不会被"该不该降级"困扰（心理+5）。',rarity:'legendary',color:'#ffd700',effect:{bankroll:15000,mental:5}},
+  {id:21,name:'逆风翻盘',desc:'绝境求生的本能。心理+10——别人会崩溃的境地，你总能再撑一手。',rarity:'legendary',color:'#ffd700',effect:{mental:10}},
+  // 解锁型：解锁特定事件链（数值暗示，引擎层后续实现链）
+  {id:22,name:'扑克世家',desc:'你出身牌手世家，从小在牌桌边长大。声望+5，技术+3——人脉和童子功是你的底牌。',rarity:'rare',color:'#b0b8e0',effect:{reputation:5,skill:3}},
+  {id:23,name:'海外背景',desc:'你在海外生活多年，熟悉国际牌圈生态。声望+8，技术+5——EPT/WPT 的桌子对你不陌生。',rarity:'epic',color:'#c084fc',effect:{reputation:8,skill:5}},
+  {id:24,name:'技术极客',desc:'你痴迷Solver，把GTO当信仰。技术+10，但心理-5——和机器打交道多了，和人打交道就生疏了。',rarity:'epic',color:'#c084fc',effect:{skill:10,mental:-5}},
+  {id:25,name:'地下暗局',desc:'你混迹灰色地带，懂规矩也懂人。资金+10000，但声望-3——你的钱来路不那么干净。',rarity:'rare',color:'#b0b8e0',effect:{bankroll:10000,reputation:-3}},
+  // 诅咒型：强力但带代价
+  {id:26,name:'浪人血统',desc:'你野心勃勃、永不满足。资金+20000，但心理-8——赢再多也填不满那口井。',rarity:'epic',color:'#c084fc',effect:{bankroll:20000,mental:-8}},
+  {id:27,name:'赌徒基因',desc:'你天生就是赌徒。资金+8000，但心理-6——赢的时候想赢更多，输的时候想翻回来，这是刻在基因里的诅咒。',rarity:'rare',color:'#b0b8e0',effect:{bankroll:8000,mental:-6}},
+  {id:28,name:'孤狼之心',desc:'你独来独往，不需要任何人。技术+12，但声望-5——你很强，但没人愿意帮你。',rarity:'rare',color:'#b0b8e0',effect:{skill:12,reputation:-5}},
+  // 成长型：随时间增强（数值给起步补偿，机制描述留引擎）
+  {id:29,name:'晚熟之才',desc:'大器晚成。技术+2起步——前十年你平平无奇，但岁月会让你成为越老越强的怪物。',rarity:'common',color:'#9ad',effect:{skill:2}},
+  {id:30,name:'复利思维',desc:'你懂得让钱生钱。资金+5000起步——你的bankroll会比别人涨得更稳健。',rarity:'rare',color:'#b0b8e0',effect:{bankroll:5000}},
+  {id:31,name:'永恒学徒',desc:'你永远在学。技术+4，心理+2——每经历一次挫败，你都变得更强。',rarity:'common',color:'#9ad',effect:{skill:4,mental:2}},
+  {id:32,name:'岁月沉淀',desc:'你越老越稳。心理+4起步——时间是你的朋友，年纪越大心态越通透。',rarity:'epic',color:'#c084fc',effect:{mental:4}},
+  // 灰度型：有得有失
+  {id:33,name:'完美主义',desc:'你精益求精。技术+8，但心理-4——你对每一手的执着，正在慢慢烧干你自己。',rarity:'common',color:'#9ad',effect:{skill:8,mental:-4}},
+  {id:34,name:'社交达人',desc:'你人脉广阔。声望+12，但资金-3000——应酬、请客、维系关系，都是真金白银。',rarity:'common',color:'#9ad',effect:{reputation:12,bankroll:-3000}},
+  {id:35,name:'风险管理',desc:'你天生保守稳健。心理+6，但技术-2——你几乎不会破产，但也很难暴富。',rarity:'common',color:'#9ad',effect:{mental:6,skill:-2}}
+];
+
+// ============================================================
+// DATA: EVENTS (80+ events)
+// ============================================================
+const EVENTS=[
+  // === 新手入门期 (18-25) ===
+  {id:1,title:'第一次摸牌',text:'大学室友从抽屉里掏出一副被啤酒泡过的扑克牌："来，教你一个游戏，叫德州扑克。"你看着那对有些粘手的牌，不知道这一局将改变你的一生。',minAge:18,maxAge:22,weight:10,mode:'once',conditions:{},choices:[{text:'半推半就加入',effects:{skill:2,mental:2},feedback:'你输了第一局，但感觉这东西有点意思。'},{text:'眼睛发光，主动请缨',effects:{skill:5,mental:-3},feedback:'你通宵看完了所有新手教学视频，第二天翘了早课。'}]},
+  {id:2,title:'第一次充值',text:'你盯着那个存款界面愣了很久。银行卡余额3800块，这个月还要交房租。但那个NL2的鱼塘，看起来实在太诱人了。',minAge:18,maxAge:26,weight:8,mode:'once',conditions:{maxSkill:30},choices:[{text:'存100块试试水',effects:{bankroll:-100,skill:1},feedback:'你小心翼翼地在NL2打了三天，赢了8块钱。'},{text:'干！存3000块直接上NL25',effects:{bankroll:-3000,skill:3,mental:-5},feedback:'第一天你就被四条清空了一个buy-in，手在发抖。'}]},
+  {id:3,title:'第一个大底池',text:'你拿着AK在翻牌击中顶对顶踢脚。对手全下。你跟注。转牌A。河牌A。你盯着屏幕上那个你从未见过的数字，心跳加速到难以呼吸。',minAge:18,maxAge:28,weight:7,mode:'once',conditions:{minBankroll:50},choices:[{text:'截图发朋友圈',effects:{mental:5,reputation:3},feedback:'朋友圈收获了47个赞，你爸评论："又在赌博？"'},{text:'冷静分析这手牌',effects:{skill:3,mental:2},feedback:'你打开手牌记录器认真复盘，发现这手牌打得其实很烂。'}]},
+  {id:4,title:'第一次被Bad Beat',text:'翻牌你中了天顺。转牌你全下。河牌对手追到了同花。你看着那个1 outer的河牌，感觉宇宙在针对你。',minAge:18,maxAge:30,weight:9,mode:'repeat',conditions:{},choices:[{text:'发泄出来，砸键盘摔鼠标',effects:{mental:-4,health:-2,skill:1},feedback:'键盘裂了，但你发泄完确实痛快了一点。代价是：这种情绪外溢的模式会让你未来更难控制 tilt——你正在训练自己的爆发。'},{text:'死死压住，强迫自己复盘',effects:{mental:-6,skill:3,health:-1},feedback:'你逼自己冷静分析那一手。技术上你学到了东西，但那股怒气没有出口，在身体里发酵——第二天你对家人没来由地暴躁。压抑，是有内伤的。'}]},
+  {id:5,title:'选择你的战场',text:'GG Poker的鱼塘、PokerStars的硬核pro、还是线下私局的江湖？每个选择都意味着完全不同的牌手生涯。',minAge:20,maxAge:28,weight:8,mode:'once',conditions:{minSkill:8},choices:[{text:'GG Poker - 生态好，鱼多',effects:{bankroll:5000,reputation:-5},feedback:'你在GG的NL50发现了一群只会用"随机"按钮的玩家。'},{text:'PokerStars - 全球最强',effects:{skill:8,mental:3},feedback:'第一天就被一群俄罗斯reg按在地上摩擦，但你学到了很多。'},{text:'线下私局 - 人情江湖',effects:{reputation:8,skill:2},feedback:'你认识了一个叫老王的人，他说下周带你去一个"人傻钱多"的局。'}]},
+  {id:6,title:'要不要买HUD',text:'你发现很多reg都有HUD，数据密密麻麻像开挂一样。但一个月399块的订阅费对你来说不是小数目。',minAge:19,maxAge:27,weight:6,mode:'once',conditions:{minSkill:10,minBankroll:500},choices:[{text:'买！投资自己',effects:{bankroll:-2000,skill:6},feedback:'装上HUD的第一个session，你的红线下得比绿线快。数据告诉你：你是个鱼。'},{text:'先用人脑记笔记',effects:{mental:3,skill:1},feedback:'你手写了三页对reg的解读，发现自己的观察力大有提升。'}]},
+  {id:7,title:'发现GTO',text:'你在B站刷到一个叫"JPS"的UP主，他说："你的每一个决策，在GTO框架下都有唯一正确的答案。"你陷入了沉思。',minAge:20,maxAge:30,weight:7,mode:'once',conditions:{minSkill:15},choices:[{text:'立刻下单PioSOLVER',effects:{bankroll:-4000,skill:10,mental:-2},feedback:'你花了两周才搞懂怎么运行第一个脚本。但你感觉新世界的大门已经打开了。'},{text:'GTO太复杂了，先打好剥削',effects:{bankroll:3000,skill:3},feedback:'你继续用ABC扑克碾压鱼塘，每个月稳定盈利。'}]},
+  {id:8,title:'要不要辞职全职打牌',text:'银行账户里有了5万块，每个月光靠打牌已经能赚到工资的两倍。但你妈说："找个正经工作吧。"',minAge:22,maxAge:30,weight:10,mode:'once',conditions:{minBankroll:30000,minSkill:25},choices:[{text:'辞职！全职Pro',effects:{mental:10,reputation:5,health:-5},feedback:'你交了辞职信的那天晚上，失眠了。不是因为害怕，是因为太兴奋了。'},{text:'先兼职打着，等更稳定',effects:{mental:-5,bankroll:5000,health:3},feedback:'你继续白天上班晚上打牌，但总感觉两边的自己都不是真正的自己。'}]},
+  {id:9,title:'第一场线上MTT',text:'SCOOP周日百万赛。参赛费55刀。你告诉自己要fly like a butterfly。开场15分钟，你的AA被KK清空了。',minAge:20,maxAge:32,weight:7,mode:'once',conditions:{minBankroll:2000},choices:[{text:'再报名一次重入',effects:{bankroll:-2000,mental:-5},feedback:'第二次你活到了第3小时，bubble前被清空。'},{text:'退出，回去打cash',effects:{mental:3,bankroll:500},feedback:'你回到熟悉的cash桌，感觉踏实多了。'}]},
+  {id:10,title:'偶遇大Pro',text:'在澳门永利，你旁边坐着一个戴帽子的外国人。你看了一会儿他的手，突然认出那是Phil Ivey。他正在玩1000/2000港币的牌局。',minAge:22,maxAge:40,weight:4,mode:'once',conditions:{minReputation:20},choices:[{text:'上去要合影',effects:{reputation:5,mental:5},feedback:'Ivey礼貌地微笑了，但明显不太想被打扰。照片拍得不错。'},{text:'买in加入这个桌子',effects:{bankroll:-50000,skill:5,mental:10},feedback:'你坐在Ivey对面，手心全是汗。这局牌你永远不会忘记。'}]},
+  {id:11,title:'教练的诱惑',text:'一个知名教练在群里发广告：8周训练营，收费3000元。他号称带出了5个NL500+的reg。',minAge:20,maxAge:35,weight:7,mode:'repeat',conditions:{minBankroll:5000,minSkill:15},choices:[{text:'报名！系统学习',effects:{bankroll:-18000,skill:12,reputation:3,health:-2},feedback:'训练营结束时，你的红线终于平了。教练说你是最有潜力的学员之一。但连续八周高强度复盘，你瘦了五斤。'},{text:'我自己学得更快',effects:{mental:2,skill:4},feedback:'你买了三本书和一个月GTO Wizard，靠自学也进步了不少。但偶尔会怀疑自己走了弯路。'}]},
+  {id:12,title:'要不要录屏做内容',text:'朋友说你脸长得不错，讲话也有梗，"去B站做扑克UP主啊，说不定比打牌还赚钱。"',minAge:22,maxAge:38,weight:6,mode:'once',conditions:{minReputation:15},choices:[{text:'开频道！做一个内容创作者',effects:{reputation:10,skill:-3,mental:5},feedback:'第一个视频《我在澳门永利的一晚》只有300播放。但你很享受这个过程。'},{text:'专心打牌，不做这些虚的',effects:{skill:3,mental:-2},feedback:'你继续打牌，但偶尔会想：如果不做内容，我的扑克知识会不会被埋没了？'}]},
+
+  // === 职业建立期 (26-35) ===
+  {id:13,title:'第一次大Downswing',text:'这周你输了15个买入。AA被清三次，KK撞AA两回，set over set 两回。你开始怀疑自己到底会不会打牌。',minAge:24,maxAge:45,weight:9,mode:'repeat',conditions:{minSkill:20,minBankroll:5000},choices:[{text:'暂停一周，出去旅行',effects:{mental:10,health:5,bankroll:-3000},feedback:'在海边吹了三天风，你忽然想通了：这就是方差。回来继续打。'},{text:'降级到更低级别找回信心',effects:{mental:5,skill:2,bankroll:-2000},feedback:'在NL50你重新找到了碾压的感觉。两周后，你带着信心回到了NL200。'},{text:'加大买入，追回损失',effects:{mental:-10,bankroll:10000},feedback:'那天你运气确实回来了，赢了8个买入。但你心里清楚，这是病态的tilt在驱动你。'}]},
+  {id:14,title:'第一次进Final Table',text:'512人的线上MTT，你活到了最后9个人。奖金结构显示：第九名2400，第一名45000。你的手在发抖，但脑子出奇地清醒。',minAge:24,maxAge:40,weight:8,mode:'once',conditions:{minSkill:30,minBankroll:5000},choices:[{text:'稳扎稳打，优先保名次',effects:{bankroll:80000,reputation:8,mental:3},feedback:'你最终获得第六名，奖金11800。虽然不是冠军，但你第一次相信：我真的可以。'},{text:'Aggro！冲着冠军去',effects:{bankroll:200000,reputation:15,mental:10},feedback:'你一路碾压，最终在HU手握3:1筹码优势夺冠。朋友圈炸了。'}]},
+  {id:15,title:'澳门之旅',text:'老王说他认识澳门永利一个VIP房的经理，可以带你进50/100港币的私局。你攥着辛苦积攒的5万港币，踏上了去澳门的路。',minAge:25,maxAge:40,weight:6,mode:'once',conditions:{minBankroll:20000,minReputation:10},choices:[{text:'放手一搏！',effects:{bankroll:300000,reputation:12,mental:8},feedback:'你两天赢了15万港币。但你注意到老王的脸越来越黑。'},{text:'太冒险了，不去',effects:{mental:5,health:3},feedback:'你继续在线上稳健研磨。偶尔会想：如果去了会怎样？'}]},
+  {id:16,title:'投资机会？',text:'一个牌友说他有个朋友在做区块链项目，保底月收益15%。"咱们扑克圈的都懂概率，这个是确定性的。"',minAge:25,maxAge:50,weight:5,mode:'once',conditions:{minBankroll:30000},choices:[{text:'投5万试试',effects:{bankroll:-50000},feedback:'三个月后，那个"朋友"失联了。你的5万变成了空气。'},{text:'不碰不熟悉的领域',effects:{mental:3},feedback:'你婉拒了。半年后听说投了的人都亏了。你第一次为自己的保守感到庆幸。'}]},
+  {id:17,title:'赞助合同',text:'一家小型扑克网站向你发出一份赞助合同：每月固定费用3000元+赛事买入报销50%，换你穿他们的logo打现场赛。',minAge:26,maxAge:45,weight:6,mode:'once',conditions:{minReputation:30},choices:[{text:'签！有赞助就是Pro了',effects:{bankroll:20000,reputation:10},feedback:'你穿着印有logo的hoodie打了第一场有赞助的比赛。感觉不一样了。'},{text:'我要找更大的赞助商',effects:{mental:3,reputation:-2},feedback:'三个月后你还没有找到更好的赞助。你开始后悔当初没签。'}]},
+  {id:18,title:'第一次在WSOP',text:'你飞到了拉斯维加斯。Rio赌场的空气里飘着炸鸡和汗水的味道。你低头看了一眼胸前挂着的WSOP参赛证，深吸一口气。',minAge:26,maxAge:50,weight:9,mode:'once',conditions:{minBankroll:50000,minSkill:35},choices:[{text:'主打$1500赛事，多打几场',effects:{bankroll:200000,reputation:12,skill:5,mental:-2},feedback:'你在第七场中终于cash了，虽然只是第87名。但你拿到了人生第一张WSOP奖金支票。连续熬夜作战让你精疲力竭。'},{text:'All-in打$10000主赛事',effects:{bankroll:800000,reputation:25,skill:8,mental:15},feedback:'你活到了Day 4。虽然最终在第32名出局，但你已经进入了所有人的视野。'}]},
+  {id:19,title:'要不要打高额桌',text:'你已经在NL200稳定盈利半年了。最近有人邀请你一起拼桌打NL1000的局，说里面有两头巨鲸。但你目前的bankroll不足30个买入。',minAge:26,maxAge:42,weight:8,mode:'once',conditions:{minSkill:40,minBankroll:30000},choices:[{text:'上！机会不等人',effects:{bankroll:400000,skill:5,mental:8},feedback:'你第一个session就赢了5个买入。但你也感受到了：这里的reg打法和NL200完全不同。'},{text:'先攒够bankroll再说',effects:{mental:8,skill:3,bankroll:10000},feedback:'你继续研磨。两个月后bankroll达标了，但那条鲸鱼已经不再出现在那张桌子上了。'}]},
+  {id:20,title:'异地恋的考验',text:'你飞到世界各地打比赛，她留在国内朝九晚五。视频通话里她的笑容越来越勉强。她说："你有没有想过，我们这样还能撑多久？"',minAge:26,maxAge:40,weight:7,mode:'once',conditions:{minReputation:20},choices:[{text:'减少赛程，多陪她',effects:{mental:12,health:5,bankroll:-10000,reputation:-5},feedback:'你在家待了两个月。虽然线上收入少了一半，但她重新开始笑了。'},{text:'对不起，但现在是我的黄金期',effects:{mental:-10,skill:5,bankroll:20000},feedback:'她挂了电话三天后发了一条朋友圈："有些人永远活在明天。"你愣了很久。'}]},
+  {id:21,title:'Tilt失控',text:'连续三天的bad beat像压路机碾过你的神经。你发现自己正在和NL500的reg对喷垃圾话。你还追加了5个买入，完全处于tilt状态。',minAge:24,maxAge:50,weight:7,mode:'repeat',conditions:{minSkill:25,maxMental:50},choices:[{text:'立刻关电脑，出去跑步',effects:{mental:6,health:5,bankroll:-8000,reputation:-3},feedback:'大汗淋漓后你冷静了。但今天的8个买入亏损成了定局。更难受的是，群里有人截图说你"怂了跑路"——你的体面碎了一地。'},{text:'继续打，赌一口气翻本',effects:{bankroll:5000,mental:-12,skill:3,health:-4},feedback:'你居然赢回来一点。但这种"亏了能追回来"的经验正在训练你的大脑去追逐亏损——这是赌徒谬误的起点。短期回血，长期致命。'}]},
+  {id:22,title:'被教练坑了',text:'一个标榜自己是"NL500稳压4bb/100"的教练收了你2万元培训费。结果发现他的所谓"独家体系"就是把Runitonce的视频翻译了一遍。',minAge:24,maxAge:38,weight:5,mode:'once',conditions:{minBankroll:10000,minSkill:20},choices:[{text:'去论坛曝光他',effects:{reputation:8,mental:3},feedback:'你的帖子火了。那个教练退圈了。但你发现扑克培训圈的水比你想的更深。'},{text:'算了，花钱买教训',effects:{mental:-5,skill:2},feedback:'你删掉了他的微信，开始系统地自学。但2万块确实很心疼。'}]},
+  {id:23,title:'要不要生小孩',text:'你们已经结婚两年了。她开始谈孩子的事。你说："再给我一年，等我bankroll到了50万。"她的眼神让你心碎。',minAge:28,maxAge:42,weight:7,mode:'once',conditions:{minReputation:25},choices:[{text:'好，我们要个孩子',effects:{mental:8,health:-3,bankroll:-20000},feedback:'你开始更高效地管理时间。每天4小时高质量session，剩下的时间留给家庭。收入没降。'},{text:'再等等，现在不是时候',effects:{mental:-8,skill:5,bankroll:15000},feedback:'你更拼了。但偶尔半夜醒来，看着她熟睡的脸，你会想：到底什么是"更好的生活"？'}]},
+  {id:24,title:'GPT挑战者',text:'一个自称"AI扑克终结者"的匿名账号在GG Poker NL500横扫了所有人。你的winrate直接被干掉了2bb/100。你开始怀疑：人脑还能和AI打吗？',minAge:28,maxAge:50,weight:6,mode:'once',conditions:{minSkill:40},choices:[{text:'深入研究AI策略，学习它的打法',effects:{skill:12,mental:-3},feedback:'你花了一个月逆向分析它的打法，发现了一个微小的漏洞：它在4bet pot的bluff频率过高。'},{text:'退出线上，转打更多现场赛',effects:{reputation:5,skill:-3,bankroll:10000},feedback:'现场赛的鱼比你想象的多。你终于喘了口气。'}]},
+
+  // === 巅峰期 (36-50) ===
+  {id:25,title:'受邀加入扑克战队',text:'一个国际扑克战队向你发出了邀请。他们提供完整的培训体系、教练支持、赛事赞助和每月底薪5000美元。条件是：你必须搬去他们的基地。',minAge:30,maxAge:45,weight:7,mode:'once',conditions:{minSkill:50,minReputation:40},choices:[{text:'加入！这是职业生涯的顶峰',effects:{skill:10,reputation:15,bankroll:30000,mental:5},feedback:'你搬去了基地，和全球顶尖的选手一起训练。你发现自己还有很多要学的。'},{text:'我习惯单打独斗',effects:{skill:3,mental:5},feedback:'你继续做自己的老板。但有时候会觉得，一个人走这条路确实有点孤独。'}]},
+  {id:26,title:'豪客赛邀请',text:'澳门一场20万港币买入的豪客赛，有人愿意替你出10万的份额。剩下的10万要你自己掏。',minAge:30,maxAge:50,weight:7,mode:'once',conditions:{minBankroll:100000,minSkill:45},choices:[{text:'打！这是豪客赛的入场券',effects:{bankroll:1500000,reputation:20,mental:5},feedback:'你在FT上和几个你只在视频里见过的pro较量。虽然最后拿了第四，但你感觉自己属于这个舞台。'},{text:'风险太大，不去了',effects:{mental:5,health:3},feedback:'你继续在中级别稳定盈利。但圈子里开始有人叫你"永远不敢迈出那一步的reg"。'}]},
+  {id:27,title:'开培训班',text:'你的学生越来越多了。一个人教不过来。助手建议你把课程系统化，做成一个完整的产品线。但你要投入大量时间在课程研发上，会吃掉你的打牌时间。',minAge:30,maxAge:50,weight:6,mode:'once',conditions:{minReputation:50,minSkill:50},choices:[{text:'全力做培训，打造品牌',effects:{reputation:15,bankroll:50000,skill:-5,health:-2},feedback:'你的"从NL25到NL500"课程上线就卖了300份。你忽然发现，教人打牌比自己打牌赚钱多了。但备课和答疑占满了你所有时间，你已经三个月没正经打过牌了。'},{text:'继续专注打牌，教学当副业',effects:{skill:8,mental:3},feedback:'你坚持了自己的初心。学生少了，但你更快乐了。'}]},
+  {id:28,title:'被人在2+2曝光',text:'有人在国际扑克论坛2+2上发帖，说你是一个"数据造假的中国reg"。帖子下面有上百条评论，你的名字被贴在了首页。',minAge:28,maxAge:48,weight:5,mode:'once',conditions:{minReputation:35},choices:[{text:'正面回应，贴出自己的tracker数据',effects:{reputation:10,mental:3},feedback:'你贴出了自己两年的hand history统计。那些质疑的人沉默了。反而多了几个找你打HU的挑战者。'},{text:'不理会，让时间证明一切',effects:{mental:-5,reputation:-5},feedback:'你选择沉默。但有些人不这么想。你的学生少了几个。'}]},
+  {id:29,title:'百万奖金',text:'WSOP主赛事。Day 7。12人剩。你筹码排第四。ESPN的摄像机对准了你的脸。你知道国内的直播房间里，有几万人在看你的每一个动作。',minAge:30,maxAge:55,weight:10,mode:'once',conditions:{minSkill:60,minMental:50,minBankroll:100000},choices:[{text:'All-in！跟着自己的read走',effects:{bankroll:5000000,reputation:30,mental:20},feedback:'你大叫一声，筹码推了出去。对手fold了。直播弹幕刷屏了"牛逼！！！"最终你获得第三名，奖金$1,200,000。'},{text:'稳妥推进，利用ICM施压',effects:{bankroll:2000000,reputation:15,mental:8},feedback:'你最终获得第五。虽然没进前三，但你展示了一个成熟牌手的纪律性。'}]},
+  {id:30,title:'写书邀约',text:'一家扑克出版社发来邮件，邀请你写一本书，主题是"中国式扑克的崛起"。预付版税15万。但你从来没写过超过3000字的东西。',minAge:32,maxAge:55,weight:6,mode:'once',conditions:{minReputation:50},choices:[{text:'写！这是留下Legacy的机会',effects:{reputation:20,bankroll:50000,skill:-5,health:-2},feedback:'你花了八个月写完了这本书。出版后上了亚马逊扑克类新书榜第一。你现在是"作家"了。但八个月的久坐熬夜让颈椎出了问题。'},{text:'我不是写书的料',effects:{mental:3,skill:3},feedback:'你婉拒了。但偶尔会想：如果写了，那本书会不会真的改变一些人的扑克生涯？'}]},
+  {id:31,title:'破产边缘',text:'连续三个月的下风期已经吃掉了你账户里的六位数。你的backer开始在微信群催你还款。这个月房租都快付不出来了。',minAge:30,maxAge:55,weight:8,mode:'repeat',conditions:{maxBankroll:5000,minSkill:25},choices:[{text:'去打工维持生计，暂停打牌',effects:{bankroll:5000,mental:5,health:3,reputation:-10},feedback:'你在一家便利店上夜班。同事没人知道你曾经是一个NL500的reg。'},{text:'找朋友借钱，赌最后一把',effects:{bankroll:30000,mental:-10,health:-5},feedback:'朋友借了你最后一笔钱。你看着他同情的眼神，发誓这是最后一次。'},{text:'卖掉一切能卖的东西',effects:{bankroll:10000,mental:-5,health:-3},feedback:'你卖了电脑、显示器、甚至收藏的扑克书籍。只剩下一部旧手机和一个新注册的GG账号。'}]},
+
+  // === 暮年期 (51-60) ===
+  {id:32,title:'体力不支',text:'你现在打四个小时的session就会腰酸背痛+眼睛酸涩。反应速度明显不如十年前了。年轻reg的4bet频率让你来不及算。',minAge:45,maxAge:60,weight:8,mode:'once',conditions:{minSkill:40},choices:[{text:'接受现实，降级打',effects:{mental:10,health:5,skill:-5},feedback:'降级到NL100后你依然可以稳定盈利。你学会了用经验弥补反应速度。'},{text:'请私人教练做针对性训练',effects:{health:8,skill:5,bankroll:-15000},feedback:'你改善了坐姿、饮食和睡眠。虽然还是比年轻人慢，但你的判断力依然精准。'}]},
+  {id:33,title:'儿女反对',text:'你儿子大学放假回家，看到你还在打牌。"爸，你都五十多了，能不能找点正经事做？"你的手停在鼠标上。',minAge:48,maxAge:60,weight:7,mode:'once',conditions:{minReputation:20},choices:[{text:'跟他讲你年轻时的故事',effects:{mental:8,reputation:3},feedback:'你讲了你一路走来的故事。儿子听完沉默了很久，说："爸，你真挺酷的。"'},{text:'生气，把他骂了出去',effects:{mental:-8,reputation:-5},feedback:'你们半年没有说话。每当深夜结束session，你看着空荡荡的房子，都会想起那天他离开的背影。'}]},
+  {id:34,title:'最后一场大赛',text:'一个老朋友邀请你一起打可能是最后一次的WSOP。你说："这把年纪了还打什么WSOP。"他说："就因为这把年纪，才更要打。"',minAge:50,maxAge:65,weight:9,mode:'once',conditions:{minBankroll:30000,minReputation:30},choices:[{text:'打！给自己一个完美的句号',effects:{mental:15,reputation:10,bankroll:50000},feedback:'你穿着20年前那件旧hoodie走进了Rio。摄像师给了你一个特写。你知道，这是最后一次了。'},{text:'算了，在旁边看看就行',effects:{mental:5,health:5},feedback:'你在观众席看着年轻的牌手们，想起自己第一次坐进WSOP椅子时的手汗。'}]},
+
+  // === 跨年龄通用事件 ===
+  {id:35,title:'牌友借钱',text:'一个你认识三年的牌友突然开口借5000块，说他downswing了三个月，老婆快跟他离婚了。他的声音在发抖。',minAge:22,maxAge:60,weight:6,mode:'repeat',conditions:{minBankroll:10000},choices:[{text:'借！牌友就是兄弟',effects:{bankroll:-5000,reputation:5,mental:3},feedback:'他发了一条很长的感谢微信，保证三个月内还。你信了他。'},{text:'拒绝，但给他推荐心理医生',effects:{mental:3,reputation:-3},feedback:'他愣了一下，说："你说得对。"两周后他告诉你他已经找了咨询师。'}]},
+  {id:36,title:'认识奇人',text:'牌桌上来了一个穿唐装的老头，自称"能算出每一张牌的命运"。他翻牌前fold了AA，说"这手牌会让我输给河牌的方片7"。翻牌确实有方片7。',minAge:25,maxAge:60,weight:4,mode:'once',conditions:{},choices:[{text:'跟他聊天，想知道他的故事',effects:{mental:5,skill:1},feedback:'老头说他打了40年牌，目睹了扑克从地下赌场到世界舞台的全过程。他讲的每一个故事都像小说。'},{text:'不理会，专心打牌',effects:{skill:2},feedback:'你继续打你的牌。但那老头走的时候对你笑了笑说："年轻人，你今年会有一场大胜。"'}]},
+  {id:37,title:'健身房偶遇',text:'你在更衣室看到一个熟悉的背影。是Fedor Holz。他正在用德语打电话。气氛有点微妙。你该不该搭话？',minAge:22,maxAge:50,weight:4,mode:'once',conditions:{minReputation:25},choices:[{text:'大方打招呼',effects:{reputation:8,mental:5},feedback:'Fedor很友善，你们聊了十几分钟。他说："你看起来状态不错，保持住。"'},{text:'默默离开，不想打扰',effects:{mental:2},feedback:'你安静地走了。但回去的路上一直在后悔：为什么不勇敢一点？'}]},
+  {id:38,title:'找到了漏洞',text:'在复盘时你发现了一个惊人的模式：某类reg在特定board texture上的fold to c-bet频率高达85%。这简直是一个ATM。',minAge:24,maxAge:55,weight:7,mode:'repeat',conditions:{minSkill:35},choices:[{text:'专注攻击这个漏洞',effects:{bankroll:30000,skill:5},feedback:'你用这个edge连赢了两周。但很快有人也发现了，池子被稀释了。'},{text:'分享给学习小组',effects:{reputation:10,skill:3},feedback:'你的分享让整个小组的winrate都提升了。大家叫你"数据之神"。'}]},
+  {id:39,title:'冥想改变一切',text:'一个退役pro推荐你去试试冥想。你说："我一个打扑克的，想那些干嘛？"他说："你试一次就知道了。"',minAge:26,maxAge:55,weight:6,mode:'once',conditions:{minSkill:25},choices:[{text:'试试看',effects:{mental:10,health:4,skill:-2},feedback:'你开始每天冥想。面对cooler时你平静多了——但几个对手说你"没有以前那么有压迫感了"。心态的代价，是攻击性的钝化。'},{text:'不试，保持我的杀气',effects:{mental:-3,skill:3},feedback:'你保留了那股狠劲，aggression指数全场最高。但你的mental波动也更大，一次bad beat能毁你一整周。锋利，但脆。'}]},
+  {id:40,title:'扑克圈的瓜',text:'圈内爆出一个大瓜：某知名pro被举报使用RTA。聊天记录、tracker数据全部被扒了出来。你的微信群里炸了。',minAge:25,maxAge:55,weight:5,mode:'once',conditions:{minReputation:20},choices:[{text:'理性分析，写一篇长文',effects:{reputation:8,skill:2},feedback:'你的分析文章被转发了3000次。圈里开始有人叫你"扑克圈的理性之声"。'},{text:'吃瓜，不发表意见',effects:{mental:2},feedback:'你在群里潜水看八卦。但总觉得少了点什么。'}]},
+
+  // === GTO之神事件链 ===
+  {id:41,title:'GTO觉醒',text:'你在二手书店花20块买了一本《Applications of No-Limit Hold\'em》。翻开第一章，你感到自己的大脑在重新布线。那些复杂的公式和range图表，让你第一次理解了"均衡"的概念。',minAge:22,maxAge:38,weight:8,mode:'once',conditions:{minSkill:20},choices:[{text:'沉迷其中，每天研读',effects:{skill:8,mental:-2,health:-2},feedback:'你连续两周熬夜读完了整本书。虽然眼睛痛得不行，但你感觉自己比之前强了一倍。',setFlag:'gto_path'},{text:'太难了，先放一放',effects:{skill:2,mental:2},feedback:'你把书放在了书架上。它积了三年的灰。'}]},
+  {id:42,title:'Solver之谜',text:'你终于凑够钱买了一套PioSOLVER。当第一个解决方案跑出来的时候，你盯着那些彩色的range图表，感觉像在看外星文字。但同时，你也发现了一些之前从未想过的line。',minAge:25,maxAge:45,weight:8,mode:'once',conditions:{minSkill:30,requiredFlags:['gto_path']},choices:[{text:'深入钻研Solver',effects:{skill:12,mental:-3,health:-3},feedback:'你每天跑4小时的脚本。你的大脑开始用Solver的方式思考。但你的社交生活基本归零了。',setFlag:'solver_study'},{text:'只学基础用法就够了',effects:{skill:5,mental:3},feedback:'你把Solver作为参考工具而非圣经。你觉得这是健康的平衡。'}]},
+  {id:43,title:'独特的发现',text:'在分析了几千个Solver脚本之后，你注意到了一个几乎没人讨论的模式：在特定的turn spr和range配置下，Solver会采用一个反直觉的超大size overbet作为主要频率。这在任何公开教学里都没出现过。',minAge:28,maxAge:48,weight:9,mode:'once',conditions:{minSkill:45,requiredFlags:['solver_study']},choices:[{text:'这个发现太重要了，要写下来',effects:{skill:10,reputation:5,health:-2},feedback:'你花了两周写了一篇详尽的分析文章。你用几百个脚本验证了它。你给它起名叫"Turn Overbet Paradox"。两周没日没夜的钻研让你眼底充血。',setFlag:'found_edge'},{text:'留着自己用，不公开',effects:{bankroll:50000,skill:2},feedback:'你用这个策略在NL1000上杀疯了。但你知道这个edge不会永远持续。'}]},
+  {id:44,title:'2+2爆炸',text:'你把"Turn Overbet Paradox"的论文发在了2+2论坛上。标题叫"A New Perspective on Turn Sizing in 3-Bet Pots"。第二天醒来，你的帖子已经有200多条回复，包括几个高额reg的深度讨论。',minAge:30,maxAge:50,weight:9,mode:'once',conditions:{minReputation:40,requiredFlags:['found_edge']},choices:[{text:'深入参与讨论，建立学术地位',effects:{reputation:20,skill:5,mental:5},feedback:'你和几个顶尖reg进行了高质量的技术交流。你的名字开始出现在"扑克理论"的讨论中。',setFlag:'2p2_fame'},{text:'保持低调，只回复关键问题',effects:{reputation:8,skill:3},feedback:'你选择了低调。但你注意到有人开始引用你的理论。'}]},
+  {id:45,title:'GTO Wizard邀约',text:'GTO Wizard的CEO发来了一封英文邮件："我们看了你在2+2上的论文。你愿不愿意来我们团队做顾问？年薪$120,000+期权。"你盯着屏幕愣了很久。',minAge:32,maxAge:55,weight:10,mode:'once',conditions:{minSkill:60,requiredFlags:['2p2_fame']},choices:[{text:'接受！这是人生的新篇章',effects:{bankroll:1500000,reputation:30,skill:8,mental:10},feedback:'你的照片出现在了GTO Wizard的"团队"页面上。你被称为：让扑克理论前进了一步的人。',setFlag:'gto_god'},{text:'婉拒，我想做自己的项目',effects:{skill:5,mental:5,reputation:5},feedback:'你决定自己做一个产品。虽然路更难走，但你为自己的选择骄傲。'}]},
+
+  // === Busto到Robusto逆袭链 ===
+  {id:46,title:'最后一颗筹码',text:'你看着账户里最后300块钱。这是三个月前的三万块中剩下的最后一点。你已经在考虑要不要把显示器卖了，找份送外卖的活。窗外下着雨。',minAge:24,maxAge:50,weight:8,mode:'once',conditions:{maxBankroll:3000,minSkill:20},choices:[{text:'用这300块打最后一场MTT',effects:{bankroll:-300,mental:-15,health:-5},feedback:'你报名了一场11刀的MTT。你的手放上键盘的时候，感觉到了一种奇怪的平静。',setFlag:'busto_moment'},{text:'认输，去找工作',effects:{mental:-5,bankroll:2000},feedback:'你关了电脑。但你心里知道，你不会真的放弃。你只是需要喘口气。'}]},
+  {id:47,title:'绝地翻盘',text:'那场11刀的MTT。682人参加。你一路用最猥琐的短码战术苟到了Final Table。然后奇迹发生了——你连抓三把AA，一把KK。',minAge:24,maxAge:50,weight:10,mode:'once',conditions:{maxBankroll:5000,requiredFlags:['busto_moment']},choices:[{text:'全力争冠！',effects:{bankroll:600000,mental:20,reputation:15},feedback:'你赢了。$18,400的冠军奖金。你瘫在椅子上，眼泪止不住地流。',setFlag:'comeback'},{text:'稳扎稳打，先保名次',effects:{bankroll:200000,mental:10,reputation:5},feedback:'你拿了第三名，$6,200。虽然没夺冠，但你的账户重新亮了起来。',setFlag:'comeback'}]},
+  {id:48,title:'登顶',text:'三年之后。没人再提那段你差点放弃的日子了。你坐在WSOP的最终桌上，筹码排第一。ESPN的镜头对着你，主持人叫了你的名字。你想起那天账户里只剩300块的自己。',minAge:28,maxAge:55,weight:10,mode:'once',conditions:{minSkill:60,minBankroll:200000,requiredFlags:['comeback']},choices:[{text:'为了那个300块的自己',effects:{bankroll:5000000,reputation:30,mental:25},feedback:'你夺冠了。全场起立鼓掌。你把金手链举过头顶，透过灯光看着它。你知道那个300块的自己，此刻也在笑。'},{text:'已经够了，享受比赛',effects:{mental:15,reputation:12,bankroll:1500000},feedback:'你获得了第三名。虽然没拿冠军，但当你走出赛场时，你对自己说：那个300块的自己会为你骄傲的。'}]},
+
+  // === 圈内绯闻链 ===
+  {id:49,title:'牌桌上的邂逅',text:'在一场线下赛事中，你旁边坐着一个打牌风格极凶的女牌手。她3bet你的频率高得离谱。赛间休息时，她在咖啡机前对你说了第一句话："你的river fold太紧了。"',minAge:25,maxAge:45,weight:6,mode:'once',conditions:{minReputation:20},choices:[{text:'笑着回怼："你的3bet太松了"',effects:{mental:5,reputation:3},feedback:'你们聊了一整个休息时间。她叫小鹿。你知道事情开始变得复杂了。',setFlag:'rumor_start'},{text:'礼貌避开',effects:{skill:2,mental:1},feedback:'你端着咖啡回到了牌桌。但你发现自己的余光一直在找她。'}]},
+  {id:50,title:'绯闻发酵',text:'有人在扑克群里发了一张你们在澳门一起吃饭的照片，配文"扑克圈金童玉女？"。群里瞬间99+。你的手机震个不停。',minAge:26,maxAge:46,weight:6,mode:'once',conditions:{requiredFlags:['rumor_start']},choices:[{text:'公开回应：我们是朋友',effects:{reputation:5,mental:-3},feedback:'你发了一条朋友圈澄清。但反而让更多人开始猜测。'},{text:'不回应，顺其自然',effects:{mental:-2,reputation:-5},feedback:'你选择沉默。但截图已经在三个扑克群里流传开了。'}]},
+  {id:51,title:'最终抉择',text:'小鹿给你发了一条很长很长的微信。她说她不想再这样暧昧下去了。"要么我们认真地在一起，要么我们以后只是牌桌上的对手。"',minAge:27,maxAge:47,weight:8,mode:'once',conditions:{requiredFlags:['rumor_start']},choices:[{text:'在一起吧',effects:{mental:15,health:3,reputation:5},feedback:'你们公开了关系。扑克圈炸了两天，然后就没人再提了。你发现，真正重要的东西从来不是别人的看法。'},{text:'我们只是对手',effects:{mental:-10,skill:5},feedback:'她回了一个"OK"。之后你在牌桌上再见到她，她看你的眼神和看其他reg没有区别。你告诉自己这是对的选择。'}]},
+
+  // === 更多精彩事件 ===
+  {id:52,title:'私局陷阱',text:'老王说有个"超软"的100/200私局。你去了才发现，满桌都是认识的人，而且他们很明显在联手打你。',minAge:26,maxAge:50,weight:5,mode:'once',conditions:{minBankroll:30000},choices:[{text:'当场翻脸走人',effects:{reputation:5,mental:-5,bankroll:-5000},feedback:'你站起来骂了一句就走了。虽然亏了钱，但你的底线还在。'},{text:'继续打，调整策略',effects:{skill:5,mental:-8,bankroll:15000},feedback:'你用紧凶策略撑过了这一晚，还小赢了一点。但你觉得很累，不只是身体上的。'}]},
+  {id:53,title:'一夜暴富',text:'你打了一场百万保证金的周日赛事。一路顺风顺水。最后你赢了。$183,000。你盯着银行短信，数了三遍零。',minAge:26,maxAge:50,weight:5,mode:'repeat',conditions:{minSkill:40},choices:[{text:'存一半，玩一半',effects:{bankroll:400000,mental:5,health:-3},feedback:'你在澳门玩了两天，喝得烂醉。醒来发现花了3万。但不后悔。'},{text:'全部存进bankroll',effects:{bankroll:800000,mental:3},feedback:'你默默地存好了钱。这种自律让你自己都佩服自己。'}]},
+  {id:54,title:'匿名捐助',text:'你在新闻上看到一个年轻牌手因病需要医药费。你想起自己当年最困难的时候。他的筹款页面上只有寥寥几个捐款。',minAge:28,maxAge:60,weight:5,mode:'once',conditions:{minBankroll:50000},choices:[{text:'匿名捐5万',effects:{mental:15,bankroll:-50000,reputation:3},feedback:'你点击"匿名捐赠"的时候，眼眶有点湿润。不是为了出名，是因为你知道扑克这条路有多难。'},{text:'转发到群里',effects:{reputation:5,mental:3},feedback:'你转发了链接。群里有人捐了，有人说"关我什么事"。'}]},
+  {id:55,title:'AI辩论',text:'一个AI创业者在扑克群里说："三年内，AI会让所有人类牌手失业。"群里吵翻了天。有人恐慌，有人不屑。',minAge:28,maxAge:55,weight:5,mode:'once',conditions:{minSkill:35},choices:[{text:'理性分析',effects:{reputation:8,skill:3},feedback:'你写了一篇长文分析AI在扑克中的真实位置。很多pro转发了。'},{text:'直接开喷',effects:{reputation:-3,mental:-5},feedback:'你在群里和人吵了两小时。最后发现对方是个AI创业者，只是在营销。'}]},
+  {id:56,title:'学外语',text:'你发现自己需要看懂英文扑克文献和视频。但你的英语水平只有"hello"+"all-in"。要不要请个英语老师？',minAge:22,maxAge:40,weight:5,mode:'once',conditions:{minSkill:20},choices:[{text:'请老师系统学',effects:{skill:8,mental:3,bankroll:-8000},feedback:'一年后，你可以无字幕看懂Doug Polk的讲解视频了。你的世界变大了一倍。'},{text:'看字幕翻译就行了',effects:{skill:2},feedback:'你靠着B站的字幕组继续学习。但你知道自己错过了很多一手信息。'}]},
+  {id:57,title:'牌桌上的奇遇',text:'你旁边坐了一个从头到尾不说话的人。他戴着墨镜和口罩，打了8个小时没说一句话。走的时候，他把一张纸条推到你面前。上面只有一个数字：42。',minAge:25,maxAge:55,weight:3,mode:'once',conditions:{},choices:[{text:'追上去问什么意思',effects:{mental:3,skill:1},feedback:'那人已经消失在夜色中。你花了三天琢磨这个数字，最终发现它是你出生那天的日期。'},{text:'不当回事，继续打牌',effects:{mental:-1},feedback:'你把纸条扔了。但偶尔深夜醒来，会想起那个数字。'}]},
+
+  // === 更多中后期事件 ===
+  {id:58,title:'线上账号被封',text:'扑克平台突然封了你的账号，理由是"疑似使用辅助软件"。你发了十几封申诉邮件，只得到了模板回复。',minAge:26,maxAge:50,weight:4,mode:'once',conditions:{minBankroll:10000},choices:[{text:'转战其他平台',effects:{bankroll:-5000,mental:-5},feedback:'你重新在另一个平台注册了。但你失去了原来积累的所有数据和tracker记录。'},{text:'找律师发函',effects:{bankroll:-15000,reputation:5,mental:3},feedback:'律师函起了作用。账号解封了。但你发现平台对你的账号设置了"监控标签"。'}]},
+  {id:59,title:'后辈求助',text:'一个刚入行的大学生在B站给你发了很长的私信，说他很迷茫，不知道该不该坚持。"你是我的偶像，你能告诉我扑克这条路能不能走吗？"',minAge:32,maxAge:60,weight:6,mode:'repeat',conditions:{minReputation:40},choices:[{text:'诚实地告诉他真相',effects:{reputation:8,mental:5},feedback:'你写了很长的回复。你说的都是实话：这条路能走出来的人不到1%，但如果你真的热爱，它值得。'},{text:'鼓励他，给他希望',effects:{mental:3,reputation:3},feedback:'你说"路是人走出来的"。他回了一个"谢谢大哥"。你不知道这会不会害了他。'}]},
+  {id:60,title:'开设线上扑克学院',text:'你的培训业务越来越大了。现在你面临一个选择：要不要把它正式化，注册公司、搭建网站、雇团队？这意味着你要从牌手转型为企业家。',minAge:32,maxAge:55,weight:7,mode:'once',conditions:{minReputation:55,minBankroll:100000},choices:[{text:'All-in做教育平台',effects:{reputation:15,bankroll:-80000,skill:-5,mental:5},feedback:'你注册了公司，搭了网站，雇了两个助手。第一年的营收超过了你打牌最好的一年。'},{text:'保持小规模，质量优先',effects:{mental:8,skill:3},feedback:'你继续亲自带学生，每期只收5个。质量很高，口碑很好。但你知道自己可能错过了更大的机会。'}]},
+
+  // === 补充更多各时期事件以充实 ===
+  {id:61,title:'手表风波',text:'你买了一块劳力士。你告诉自己这是"激励自己"。但你妈说："你有那闲钱不如买点基金。"你看着手腕上的表，忽然不知道自己在证明什么。',minAge:28,maxAge:50,weight:4,mode:'once',conditions:{minBankroll:100000},choices:[{text:'退了，买基金',effects:{mental:5,bankroll:30000},feedback:'你退了手表，买了一堆ETF。半年后发现ETF赚的钱比手表升值快多了。'},{text:'我靠自己赚的钱，想买什么买什么',effects:{mental:-3,health:-2},feedback:'你戴着劳力士打牌。旁边的人多看了你几眼。你分不清那是羡慕还是别的什么。'}]},
+  {id:62,title:'被赞助商放了鸽子',text:'一个赞助商签了合同，第一期费用拖了三个月。你说要解约，对方说"你爱解不解"。你才发现合同里根本没有违约金条款。',minAge:28,maxAge:50,weight:4,mode:'once',conditions:{minReputation:30},choices:[{text:'吃一堑长一智，以后请律师审合同',effects:{mental:-5,skill:1,bankroll:-5000},feedback:'你花5000块请了个律师。他说你的合同是"法律意义的废纸"。你学到了金钱买不到的教训。'},{text:'去网上曝光他们',effects:{reputation:5,mental:3},feedback:'你的曝光帖在圈子里传开了。那个赞助商短期内找不到新的签约牌手了。'}]},
+  {id:63,title:'做手术',text:'常年熬夜打牌让你的胃出了问题。医生说必须做手术，休息两个月。"两个月不打牌"对你来说比手术本身还可怕。',minAge:32,maxAge:58,weight:5,mode:'once',conditions:{minHealth:40,maxHealth:70},choices:[{text:'听医生的话，好好休息',effects:{health:20,mental:5,skill:-3,bankroll:-15000},feedback:'你在床上躺了一个月，看了二十本扑克书。回来之后，你的打法风格完全变了。更冷静，更果断。'},{text:'手术后三天就继续打',effects:{health:-15,mental:-10,bankroll:5000},feedback:'你捂着伤口继续打牌。虽然赚了点钱，但你的身体在默默记住这笔账。'}]},
+  {id:64,title:'扑克圈的葬礼',text:'你参加了一个老牌手的葬礼。他是你刚入行时认识的，一辈子都在打牌。他的儿子在悼词中说："他最大的遗憾，是没能在活着的时候告诉你们他爱你们。"',minAge:35,maxAge:65,weight:4,mode:'once',conditions:{minReputation:20},choices:[{text:'反思自己的人生',effects:{mental:10,health:5},feedback:'你回家之后给所有朋友发了微信。不是借钱，只是想说一声"谢谢"。'},{text:'这让我更坚定地走下去',effects:{mental:5,skill:3},feedback:'你更努力了。但你也开始每周抽一天不回任何消息，只陪家人。'}]},
+
+  // === 高频可重复事件 ===
+  {id:65,title:'常规研磨日',text:'又是普通的一天。你打开电脑，登陆平台，开始今天的session。三桌NL200。目标是打够2000手。',minAge:20,maxAge:60,weight:10,mode:'repeat',conditions:{minBankroll:2000},choices:[{text:'严格执行计划，打完就停',effects:{bankroll:3000,skill:2,mental:1},feedback:'你打了6个小时，2000手，+3.2bb/100。稳定的一天。'},{text:'今天状态好，多打一会儿',effects:{bankroll:8000,skill:1,health:-3,mental:-2},feedback:'你多打了4个小时。虽然多赚了一倍，但你感到轻微的burnout在酝酿。'}]},
+  {id:66,title:'扑克夜话',text:'结束了一天的session，你和几个牌友在微信语音里聊了起来。话题从今天的牌局聊到了人生哲学。',minAge:24,maxAge:55,weight:7,mode:'repeat',conditions:{minReputation:10},choices:[{text:'分享今天最精彩的一手牌',effects:{skill:3,mental:3},feedback:'大家的讨论让你看到了自己之前忽略的line。这群人虽然整天互怼，但都是真心热爱扑克的。'},{text:'吐槽今天的bad beat',effects:{mental:5,skill:1},feedback:'大家哈哈大笑，原来每个人今天都被BB了。你感觉没那么孤单了。'}]},
+  {id:67,title:'要不要更新设备',text:'你的显示器已经用了四年，响应延迟严重。新出的240Hz电竞显示器在打折。但5999块对一个抠门的牌手来说不是小钱。',minAge:24,maxAge:55,weight:6,mode:'repeat',conditions:{minBankroll:20000},choices:[{text:'买！好设备是生产力',effects:{bankroll:-5999,health:5,skill:2},feedback:'新显示器让多桌操作流畅如丝。你觉得早就该换了。'},{text:'旧显示器还能用',effects:{health:-2,bankroll:500},feedback:'你继续用着旧显示器。但最近眼睛越来越酸了。'}]},
+  {id:68,title:'遇到一条巨鲸',text:'桌上来了一个新玩家。他的VPIP是95%，3bet 0%，fold to c-bet 3%。你揉了揉眼睛，确认了数据。这是一条你见过的最大的鱼。',minAge:22,maxAge:55,weight:8,mode:'repeat',conditions:{minSkill:15,minBankroll:3000},choices:[{text:'调整策略，最大化剥削',effects:{bankroll:15000,skill:3},feedback:'你用超宽的范围和他打，拿到value就猛锤。一个session赢了8个买入。'},{text:'正常打，不过度调整',effects:{bankroll:5000,mental:3},feedback:'你也赢了不少。但你注意到另一个reg已经把那条鱼清空了。'}]},
+
+  // === 最后的补充事件 ===
+  {id:69,title:'写扑克日记',text:'你读到一篇文章说，记录每天的思考和情绪可以提升30%的学习效率。要不要开始写扑克日记？',minAge:20,maxAge:55,weight:6,mode:'once',conditions:{minSkill:15},choices:[{text:'开始写！每天500字',effects:{skill:5,mental:8,health:2},feedback:'三个月后，你重新翻阅之前的日记，看到了自己肉眼可见的成长。那些曾经让你tilt的事，现在只是微微一笑。'},{text:'我脑子够用了，不需要写',effects:{skill:1},feedback:'你继续靠脑子记忆。但你发现自己经常犯同样的错误。'}]},
+  {id:70,title:'要不要买保险',text:'你开始认真考虑：扑克选手没有五险一金。万一你受伤了、老了、打不动了，你靠什么活？',minAge:28,maxAge:50,weight:5,mode:'once',conditions:{minBankroll:50000},choices:[{text:'配置重疾险+养老年金',effects:{mental:8,bankroll:-20000},feedback:'你买了第一份保险。虽然每年要交不少钱，但你睡得比以前更踏实了。'},{text:'靠bankroll就够了',effects:{mental:-3},feedback:'你没有买。但偶尔半夜会想：如果明天我就不能打牌了怎么办？'}]},
+
+  // === 事件链专用稀有事件 ===
+  {id:71,title:'粉丝见面会',text:'你的B站频道突破了10万粉。平台邀请你参加一个扑克主题的线下粉丝见面会。你从来没在这么多人面前说过话。',minAge:28,maxAge:50,weight:5,mode:'once',conditions:{minReputation:45},choices:[{text:'去！和他们面对面交流',effects:{reputation:15,mental:10},feedback:'你讲了你最惨的一次bad beat和最好的一个冠军。台下有人哭了，有人笑了。你知道自己做对了。'},{text:'太忙了，线上互动就好',effects:{mental:-3,reputation:-3},feedback:'你在B站发了一条视频解释。弹幕有人说"耍大牌"，但更多人说"理解"。'}]},
+  {id:72,title:'被Galfond挑战',text:'Phil Galfond在他的YouTube频道上分析了你的一个著名手牌。他说："这个中国牌手的river check-raise很有趣，但我认为这里有更好的line。"',minAge:30,maxAge:55,weight:6,mode:'once',conditions:{minReputation:60,minSkill:55},choices:[{text:'录制回应视频，展示完整思路',effects:{reputation:20,skill:5,mental:5},feedback:'你的回应视频火了。Galfond在下面评论："Respect. Still disagree on the river though :)"'},{text:'私信他继续讨论',effects:{skill:5,mental:3,reputation:5},feedback:'你们在私信里继续深入讨论了那个手牌。你学到了很多。'}]},
+  {id:73,title:'被税务查账',text:'你突然收到税务局的信。你之前从来没报过扑克收入的税，因为你觉得"扑克赢的钱不算收入"。现在他们查到了你账户里六位数的入账记录。',minAge:28,maxAge:55,weight:5,mode:'once',conditions:{minBankroll:50000},choices:[{text:'请会计师处理，以后合规申报',effects:{bankroll:-30000,mental:-5,reputation:3},feedback:'会计师帮你补了税，交了一笔不小的罚金。但从那以后，你所有收入都合规申报了。'},{text:'想办法遮掩',effects:{mental:-15,bankroll:-50000},feedback:'最终你花了更多钱和精力去处理这件事。一个教训：不要和税务玩捉迷藏。'}]},
+  {id:74,title:'被邀请担任赛事解说',text:'一个直播平台邀请你去当一场大赛的解说嘉宾。他们说你的技术分析很到位，而且有梗。解说费一场5000。',minAge:28,maxAge:55,weight:5,mode:'once',conditions:{minReputation:35,minSkill:40},choices:[{text:'试试看！新体验',effects:{reputation:10,bankroll:5000,mental:5},feedback:'你在解说台上妙语连珠，弹幕全是"666"。导演说下个月还有一场，你来不来？'},{text:'我口才不行，别去丢人',effects:{mental:-2},feedback:'你婉拒了。但看着直播里那个口若悬河的解说嘉宾，你想：其实你也可以。'}]},
+  {id:75,title:'发现一本书',text:'在机场书店，你随手拿起一本关于认知心理学的书。翻开第一章，你发现它和扑克决策居然有惊人的关联。',minAge:25,maxAge:55,weight:6,mode:'once',conditions:{minSkill:20},choices:[{text:'买下来，深度阅读',effects:{skill:5,mental:8},feedback:'这本书改变了你对决策的理解。你开始从认知偏误的角度复盘自己的错误。'},{text:'扑克就是扑克，不需要心理学',effects:{skill:2,mental:-2},feedback:'你把书放下了。但你后来发现自己总是在同样的情景下犯同样的错误。'}]},
+
+  // === 补完最后的事件 ===
+  {id:76,title:'扑克马拉松',text:'你的朋友挑战你：连续打24小时，看谁盈利最多。奖金是输的人请客吃火锅。你看着自己还算充沛的体力，有点心动。',minAge:22,maxAge:45,weight:4,mode:'once',conditions:{minHealth:50},choices:[{text:'接受挑战！',effects:{health:-12,bankroll:15000,mental:-5,skill:2},feedback:'你24小时没合眼，赢了8000块。但你第二天走路都在飘。火锅很好吃，但你几乎没怎么吃就在桌上睡着了。'},{text:'拒绝，这太蠢了',effects:{health:5,mental:3},feedback:'你在旁边观战，看着朋友自虐。他打到第20个小时开始狂骂牌桌，你默默录了视频。'}]},
+  {id:77,title:'被网络暴力',text:'你的一条技术分析微博被一个大V挂了出来，说你是"扑克圈的民科"。评论区3000多条，一半在嘲笑你。手机震得你不敢看。',minAge:25,maxAge:55,weight:4,mode:'once',conditions:{minReputation:30},choices:[{text:'不用理会，做好自己的事',effects:{mental:-3,skill:3},feedback:'你关了评论，继续专注打牌。一周后没人再提这件事。网络热点比翻牌还快。'},{text:'正面硬刚，逐条反驳',effects:{mental:-8,reputation:5},feedback:'你花了两天逐个回应，反而又带了一波流量。但你感觉自己消耗殆尽。'}]},
+  {id:78,title:'成立扑克社区',text:'你突然想做一个自己的扑克社区。不收钱的那种，就为了让中国扑克圈有个真正讨论技术的地方。',minAge:28,maxAge:55,weight:5,mode:'once',conditions:{minReputation:45},choices:[{text:'说干就干！拉群建论坛',effects:{reputation:15,mental:10,bankroll:-5000},feedback:'你建了"千算Poker"群。第一周就进来了200人。看着大家在群里认真讨论牌局，你比赢了一个大赛还开心。'},{text:'算了，太麻烦',effects:{mental:-2},feedback:'你放弃了。但每次在其他群里看到低质量的讨论，你都会想：如果我有自己的群会怎样？'}]},
+
+  // === 高额高风险事件 ===
+  {id:79,title:'对赌挑战',text:'一个国外reg在Twitter上公开向你发起HU挑战，$100/$200，最少打5000手。赌注是输的人在拉斯维加斯街头穿比基尼举牌。',minAge:28,maxAge:50,weight:4,mode:'once',conditions:{minSkill:55,minBankroll:200000},choices:[{text:'接受挑战！代表中国pro出战',effects:{bankroll:500000,reputation:25,mental:10},feedback:'你以7bb/100的edge碾压了对手。他在拉斯维加斯街头举了牌子，表情非常精彩。'},{text:'专心做自己，不打这种噱头',effects:{skill:3,mental:5},feedback:'你婉拒了。但你后来看了那场比赛的录像，发现自己确实能赢。'}]},
+  {id:80,title:'人生的终极赌注',text:'你60岁了。坐在轮椅上，你最后一次打开了扑克客户端。你想打最后一手牌。不是为钱，只是想让这双手再感受一次推筹码出去的感觉。',minAge:55,maxAge:70,weight:10,mode:'once',conditions:{minSkill:30},choices:[{text:'舒舒服服地打最后一场session',effects:{mental:20,health:5},feedback:'你打了人生最后一场NL100。你fold了最后一手牌，关掉了电脑。窗外阳光正好。'},{text:'把账号和bankroll传给下一代',effects:{mental:15,reputation:10},feedback:'你把自己攒了二十年的hand history数据库和bankroll传给了一个你最看好的年轻牌手。他哭了。你也哭了。'}]},
+  // === 中国特有事件 ===
+  {id:81,title:'俱乐部被抄了',text:'你常去的俱乐部突然被警察包围。94个赌客、21个荷官全部被带走。筹码折合赌资170余万。你刚好那天不在。但你知道，这个圈子从此不一样了。（真实原型：2024年北京朝阳德州扑克俱乐部查处案）',minAge:22,maxAge:50,weight:6,mode:'once',conditions:{minReputation:15},choices:[{text:'低调离开，先避风头',effects:{mental:-5,bankroll:-5000,health:3},feedback:'你删掉了所有局头的微信。线上打GG虽然少了线下感觉，但至少安全。'},{text:'换个城市继续打线下',effects:{mental:-3,bankroll:10000,health:-3},feedback:'你在新城市找到了新局。但每次听到警笛声，你的手指都会不自觉地收紧。'}]},
+  {id:82,title:'币商跑路',text:'你通过微信联系了一个币商，想把GG账户里的3万块提出来。对方说"秒到账"，让你先转全款。你转了。然后对方消失了。这是你今年遇到的第三个骗子。（真实原型：2025Q1私服币商诈骗占玩家投诉60%）',minAge:20,maxAge:45,weight:5,mode:'once',conditions:{minBankroll:5000},choices:[{text:'报警，但大概率没用',effects:{mental:-8,bankroll:-30000},feedback:'警察做了笔录，但跨境虚拟币交易基本追不回来。你第一次感到这个圈子的底层有多暗。'},{text:'算了，当交学费',effects:{mental:-3,bankroll:-30000,skill:1},feedback:'你在群里分享了经历。老玩家们一片"哈哈哈"，说他们当年在天天德州被骗了更多。'}]},
+  {id:83,title:'签证被拒',text:'你拿到了WSOP卫星赛的门票，兴奋了一整天。但美国领事馆的签证官看了你的材料，只问了三个问题就盖了拒签章。你的WSOP梦碎在了签证窗口前。',minAge:22,maxAge:45,weight:6,mode:'once',conditions:{minReputation:20,minSkill:25},choices:[{text:'转去济州岛打APT',effects:{mental:-3,reputation:3,bankroll:10000},feedback:'济州岛的比赛体验意外地好。你拿了第12名，虽然奖金只有WSOP零头，但认识了很多亚洲pro。'},{text:'找中介再试一次',effects:{bankroll:-5000,mental:-5},feedback:'中介收了你5000块，说"这次稳了"。结果还是被拒。你看着那张再次被拒的护照，忽然想：我是来打牌的，不是来做贼的。'}]},
+  {id:84,title:'灰色身份',text:'过年回家，亲戚问你在做什么。你说"做投资"。你爸追问"什么投资？"你说"自由职业"。你妈叹了口气。你知道他们担心你，但你不能告诉他们真相——"职业牌手"在中国听起来和"无业游民"差不多。',minAge:22,maxAge:50,weight:7,mode:'once',conditions:{minSkill:15},choices:[{text:'坦白告诉他们',effects:{mental:8,reputation:-3},feedback:'你说了实话。他们沉默了整整一顿饭的时间。最后你爸说："只要你过得好就行。"你的眼眶湿了。'},{text:'继续瞒着',effects:{mental:-5,health:-2},feedback:'你继续说着"做投资"。但每次挂了电话，你都觉得自己活在一个壳里。'}]},
+  {id:85,title:'国际偏见',text:'你在WSOP塞浦路斯站打到了泡沫期。你和一个中国牌友的牌被外国选手指控"伙牌"。裁判没看底牌、没看监控，直接判停牌一圈。你看了一眼旁边的中国pro们，他们的眼神是一样的。（真实原型：WSOP塞浦路斯站中国选手被无证据指控事件）',minAge:25,maxAge:50,weight:6,mode:'once',conditions:{minReputation:30,minSkill:35},choices:[{text:'据理力争，联合中国牌友交涉',effects:{reputation:12,mental:10,skill:2},feedback:'你和田浩、Tony Lin一起找到了赛事主管。最终处罚被撤销了。但你知道，这个偏见不会因为这一次胜利就消失。'},{text:'忍了，继续打',effects:{mental:-8,skill:1},feedback:'你默默接受了处罚。但那天的感觉一直堵在胸口。后来有人在群里说"这就是中国牌手的处境"，你点了头。'}]},
+  {id:86,title:'私局里的鬼手',text:'你注意到发牌的手不对劲。他每次发大牌的时候，拇指都有一个很细微的动作。你仔细观察了三手牌——没错，这个荷官在做标记。这是传说中的"鬼手"。（真实原型：人民网报道，作弊器材售价4000-6000元）',minAge:22,maxAge:50,weight:5,mode:'once',conditions:{minSkill:25,minBankroll:10000},choices:[{text:'当场揭穿他',effects:{reputation:8,mental:5,bankroll:-5000},feedback:'你站起来指着荷官的手。场面一度很混乱。局头试图平息，但你坚持要看录像。最终你被赶了出去，但你的钱要回来了。'},{text:'不动声色，打完走人',effects:{mental:-5,skill:3,bankroll:-10000},feedback:'你假装没看出来，找了个借口离开了。下次你再来的时候，那个荷官已经不在了。'}]},
+  {id:87,title:'杀猪盘陷阱',text:'有人拉你进了一个新的线上俱乐部。注册就送10万筹码，服务周到得像五星酒店。你连赢了三天。第四天你想提现，对方说需要"验证金"。然后说需要"打满20倍流水"。然后说"工作日10-11点才能提"。你忽然意识到：这是一场精心设计的杀猪盘。',minAge:20,maxAge:45,weight:6,mode:'once',conditions:{minSkill:15,minBankroll:5000},choices:[{text:'立刻止损，删号走人',effects:{mental:-5,bankroll:-5000,skill:2},feedback:'你注销了账号。虽然亏了钱，但至少没陷得更深。你在群里发了警告，救了几个差点入坑的新人。'},{text:'报警+曝光',effects:{reputation:8,mental:3,bankroll:-8000},feedback:'你联系了几个受害者一起报警，同时在论坛曝光了整个套路。虽然追不回钱，但那个俱乐部很快被举报封了。'}]},
+  {id:88,title:'一个牌友的悲剧',text:'你认识的老张消失了三个月。再出现的时候，他在群里发了很长一段话。他说自己在天天德州输了500万，离了婚，现在住在父母家的沙发上。最后一句是"大家引以为戒吧。"（真实原型：成都双流币商诈骗案，不到20人共输约2亿）',minAge:25,maxAge:55,weight:5,mode:'once',conditions:{minReputation:15},choices:[{text:'联系他，请他吃顿饭',effects:{mental:8,reputation:5},feedback:'你们在路边摊喝了三瓶啤酒。他没哭，但说了很多。你送他回家的时候，他拍了拍你的肩膀说"别走我的路"。'},{text:'分享到群里，提醒大家',effects:{reputation:5,mental:-2},feedback:'群里沉默了很久。然后有人说"每个老玩家身边都有一个老张"。这大概是扑克圈最真实的悼词。'}]},
+  // === 作弊疑云事件链 ===
+  {id:89,title:'可疑的Heater',text:'一个叫"Mike"的玩家最近在直播桌上赢疯了。$1-3/$2-5的级别，他的赢率曲线几乎是一条直线向上。更诡异的是，他好像永远知道对手有什么牌——fold的时候对手确实有大牌，call的时候对手确实在bluff。',minAge:25,maxAge:50,weight:6,mode:'once',conditions:{minReputation:25},choices:[{text:'暗中观察，收集证据',effects:{skill:3,mental:-2},feedback:'你开始保存他的手牌录像。越看越觉得不对劲——他的决策简直像能看到底牌。',setFlag:'suspect_cheat'},{text:'不关我事，专心打自己的牌',effects:{mental:2},feedback:'你继续打你的牌。但几天后，这个名字上了所有扑克论坛的头条。'}]},
+  {id:90,title:'要不要站出来',text:'Mike的事情已经在2+2上炸了。几百小时的直播录像被逐帧分析，有人甚至做了他每一步决策的散点图。一个叫Veronica的评论员公开指控他利用RFID系统作弊。越来越多的人站出来说话。但你还握着一手别人没有的数据。',minAge:26,maxAge:50,weight:7,mode:'once',conditions:{requiredFlags:['suspect_cheat'],minReputation:30},choices:[{text:'公开你的分析',effects:{reputation:15,mental:8,skill:2},feedback:'你的分析帖成了那个月2+2热度最高的帖子。有人叫你"扑克侦探"。但也有人私信骂你多管闲事。',setFlag:'whistleblower'},{text:'匿名把证据发给记者',effects:{reputation:5,mental:5},feedback:'你的证据出现在了WIRED杂志的报道中。没人知道是你提供的。但你看着那篇报道，知道自己做了正确的事。'}]},
+  {id:91,title:'真相与代价',text:'Mike反诉了十几个人$330M诽谤。但随后又申请了破产。88名原告中的60人接受了庭外和解。没有人被刑事定罪，但所有人都知道发生了什么。你也收到了他的律师函。',minAge:27,maxAge:52,weight:8,mode:'once',conditions:{requiredFlags:['whistleblower'],minReputation:35},choices:[{text:'坚持到底',effects:{reputation:10,mental:-5,bankroll:-20000},feedback:'虽然没有判他有罪，但你做的事让整个行业开始重新审视直播安全。RFID数据不再向观众公开了。（原型：Mike Postle案最终和解）',setFlag:'disgraced'},{text:'撤掉帖子，保护自己',effects:{mental:-3,reputation:-5},feedback:'你删了帖子。官司继续了几个月，最终以保密和解结束。扑克圈继续向前滚动，好像什么都没发生过。'}]},
+  // === 天才燃尽事件链 ===
+  {id:92,title:'我就是最强的',text:'你横扫了所有对手。NL500以下没有人愿意和你打了。你对着镜子里自己说了一句Stu Ungar说过的同一句话："I am the best there ever was."你知道这是真的。但你也开始觉得：也许我比规则更强大。',minAge:25,maxAge:45,weight:7,mode:'once',conditions:{minSkill:60,minBankroll:200000},choices:[{text:'保持谦逊，继续学习',effects:{skill:3,mental:5},feedback:'你在镜子上贴了一张便签："Never forget variance。"每次出门前都会看到。'},{text:'我就是神，规则是给别人定的',effects:{skill:5,mental:-15,health:-10},feedback:'你开始出入高额现金局，喝酒、熬夜、全押——不是在打牌，而是在赌博。',setFlag:'burning_out'}]},
+  {id:93,title:'失控',text:'你已经三个月没有复盘了。你的bankroll从最高点已经跌了40%。你的朋友给你发消息问候，你不回。你的桌上永远放着一瓶酒。你告诉自己这只是"放松"，但每天早上醒来都不记得昨晚打了什么。',minAge:27,maxAge:50,weight:8,mode:'once',conditions:{requiredFlags:['burning_out'],minSkill:55,maxMental:40},choices:[{text:'去戒毒/戒赌中心',effects:{mental:15,health:10,bankroll:-50000},feedback:'你在康复中心待了30天。你遇到了很多和你一样的人——天才、成功、然后坠落。你不是唯一的。',setFlag:'recovery'},{text:'继续沉沦',effects:{mental:-20,health:-20,bankroll:-100000},feedback:'你连续打了72小时。最后一手牌你忘了fold，也忘了call。你只是盯着屏幕，手放在鼠标上，什么都没做。',setFlag:'terminal_burnout'}]},
+  {id:94,title:'深渊',text:'你输了。几乎所有。你的账户里只剩几千块。你的身体——医生说你的心脏状况像一个70岁的老人。你想起Stu Ungar死的时候45岁，身上只有$800。你今年几岁？',minAge:30,maxAge:55,weight:10,mode:'once',conditions:{requiredFlags:['terminal_burnout'],minSkill:50,maxMental:25},choices:[{text:'在一切还来得及之前，求助',effects:{mental:20,health:15,bankroll:-3000},feedback:'你打了一个很久没打过的电话。对面是多年前和你一起打牌的兄弟。他说："我一直在等你打这个电话。"',setFlag:'saved'},{text:'拒绝接受现实',effects:{mental:-25,health:-30},feedback:'你用最后一点钱……什么都没有做。你只是坐在空荡荡的房间里，看着窗外，等待天亮。',setFlag:'disgraced'}]},
+  // === 凡人封神事件链 ===
+  {id:95,title:'$86的梦想',text:'你在PokerStars上花$86打了一场卫星赛。你本来以为是赢现金的，结果拿到了一张WSOP主赛门票。你的第一个反应不是兴奋，是发愁——去拉斯维加斯的机票钱还没有着落。（灵感：Chris Moneymaker真实经历）',minAge:20,maxAge:30,weight:9,mode:'once',conditions:{minSkill:10,maxBankroll:50000},choices:[{text:'找朋友凑路费，拼一把',effects:{mental:10,bankroll:-3000},feedback:'你爸给了你$2000，说"输了就回来好好上班"。你拿着这张门票和这几千块钱，飞向了未知。',setFlag:'satellite_winner'},{text:'把门票卖了，换现金',effects:{bankroll:10000,mental:-5},feedback:'你卖了门票。$10000到账的时候，你觉得自己做了一个理智的决定。但后来每次看WSOP转播，你都在想：如果去了会怎样？'}]},
+  {id:96,title:'一张桌子改变一切',text:'WSOP主赛Day 1。你旁边坐着Phil Ivey。你的手在抖。但你告诉自己：扑克就是扑克，不管对面坐的是谁。你翻开第一手牌：口袋A。',minAge:20,maxAge:32,weight:10,mode:'once',conditions:{requiredFlags:['satellite_winner'],minSkill:15},choices:[{text:'Aggro！跟着直觉走',effects:{bankroll:15000000,reputation:35,mental:30},feedback:'你赢了。$2.5M。ESPN的镜头对着你的脸，全世界都在问：这个会计师是谁？此后二十年，他们把这叫做"你的名字效应"。',setFlag:'moneymaker_win'},{text:'稳扎稳打，争取进钱圈',effects:{bankroll:400000,reputation:15,mental:10},feedback:'你活到了Day 4，进了钱圈。虽然最终第87名，但$55000的奖金让你终于可以认真考虑全职打牌这件事了。'}]},
+  // === 优雅退场事件链 ===
+  {id:97,title:'我到底在追什么',text:'你已经赢了太多钱。多到这一辈子都花不完。但你还在打，一天八小时，一周六天。你想起来Fedor Holz说过："扑克只会索取。它非常自私。我的生活里没有让它永久占据的位置。"你看着窗外，第一次认真地想：他说的，是不是也对？',minAge:28,maxAge:50,weight:7,mode:'once',conditions:{minBankroll:500000,minSkill:45},choices:[{text:'开始减少赛程，寻找新方向',effects:{mental:10,health:8,bankroll:-20000},feedback:'你取消了接下来三个月的所有赛事报名。你买了去日本的机票——不是为了打牌，只是为了看看樱花。',setFlag:'seeking_exit'},{text:'继续打，这是我最擅长的事',effects:{skill:5,mental:-5},feedback:'你继续研磨。但那个问题像一根刺一样扎在心里。为什么？为了什么？'}]},
+  {id:98,title:'新的火光',text:'你开始尝试一些和扑克无关的事。你给一个创业团队做了顾问。你在一个高中做了关于"概率思维"的演讲。你发现自己居然很享受——不是因为赢了什么，而是因为给予了什么。',minAge:30,maxAge:52,weight:7,mode:'once',conditions:{requiredFlags:['seeking_exit'],minMental:60},choices:[{text:'全力转型，做有意义的事',effects:{mental:15,reputation:10,skill:-3},feedback:'你宣布退役。不是在输光之后，而是在最好的时候。你不再需要向外证明任何东西。',setFlag:'peaceful_exit'},{text:'一半打牌一半做事',effects:{mental:8,skill:2,reputation:3},feedback:'你找到了平衡。每年打两场大赛，其他时间做自己喜欢的事。这是你职业生涯中最平静的时光。'}]},
+  // === 灰色地带事件链（俱乐部经营） ===
+  {id:99,title:'开一个俱乐部',text:'一个朋友找到你——他有场地，你有圈子，资金方面也有人愿意投。"我们开个德州扑克俱乐部吧。"他说。你算了一笔账：每天两桌，水钱抽3%，一个月的净利润能上六位数。但你也知道，这种俱乐部的法务风险有多大。',minAge:25,maxAge:48,weight:6,mode:'once',conditions:{minReputation:25,minBankroll:50000},choices:[{text:'一起干！创业比打牌更刺激',effects:{bankroll:-50000,mental:3,reputation:5},feedback:'你们租了一间商务会所的套房，摆了四张牌桌。开业第一天坐满了三桌。你忽然觉得：这比打牌来钱快多了。',setFlag:'club_owner'},{text:'太危险了，不碰',effects:{mental:5,health:3},feedback:'你婉拒了。三个月后那个朋友的俱乐部开张了，生意好得惊人。你告诉自己做了正确的选择。'}]},
+  {id:100,title:'俱乐部黄金时代',text:'你的俱乐部生意蒸蒸日上。2000多个注册会员，每天流水六位数。你甚至开始考虑开第二家了。但你也注意到了几个不安的信号：有人在会场里私下交易积分，有一个会员输红了眼在洗手间砸了镜子。',minAge:26,maxAge:50,weight:7,mode:'once',conditions:{requiredFlags:['club_owner'],minBankroll:100000},choices:[{text:'收紧管理，严守底线',effects:{mental:5,reputation:5,bankroll:-10000},feedback:'你贴出了严格的积分管理规定，禁止私下交易。短期内收入降了20%，但你睡得比以前踏实。'},{text:'睁一只眼闭一只眼',effects:{bankroll:50000,mental:-5,reputation:-5},feedback:'收入翻了一倍。但你注意到有几个老会员再也没来过了。'}]},
+  {id:101,title:'被查了',text:'凌晨两点，一群穿制服的人冲进了你的俱乐部。警灯、手铐、摄像机。你被按在墙上，听到有人在报人数："赌客47人，荷官8人，涉案筹码折合赌资80余万元。"（真实原型：北京朝阳、成都青羊、广东深圳多起查处案）',minAge:27,maxAge:52,weight:9,mode:'once',conditions:{requiredFlags:['club_owner'],minBankroll:30000},choices:[{text:'配合调查，争取从宽处理',effects:{mental:-15,reputation:-20,bankroll:-80000,health:-10},feedback:'你在看守所待了15天。律师说你可能面临开设赌场罪的指控。你想起来当年那个问你"要不要一起干"的朋友——他也在里面。',setFlag:'club_busted'},{text:'找关系疏通',effects:{bankroll:-150000,mental:-20,reputation:-30},feedback:'钱花了，关系也找了。但案子已经上了政法系统的内网。你终于明白：灰色地带是会吃人的。',setFlag:'club_busted'}]},
+  {id:102,title:'出狱之后',text:'你出来了。俱乐部没了，钱被没收了，你的名字上了新闻——不是什么好新闻。你走在街上，感觉每个人都在看你。但你心里已经有了一个计划：不是再开俱乐部，而是做一个真正合法的、让更多人爱上扑克的平台。',minAge:28,maxAge:55,weight:10,mode:'once',conditions:{requiredFlags:['club_busted'],minMental:30},choices:[{text:'转型做合法的扑克教育/内容',effects:{mental:15,reputation:10,bankroll:30000,skill:5},feedback:'你花了一年时间考了教练证书，做了一个线上扑克教学频道。你不再碰任何灰色地带的东西。你告诉每一个学生：合法，才能长久。',setFlag:'entrepreneur_path'},{text:'彻底退出扑克圈，另谋生路',effects:{mental:5,health:10,bankroll:5000},feedback:'你开了一家小面馆。偶尔有客人认出你："你是那个……"你说："不是。来碗什么面？"'}]},
+  // === 澳门/债务链（Tom Dwan式） ===
+  {id:103,title:'澳门来电',text:'一个声音沙哑的广东男人打来电话："Tom哥让我找你。澳门永利，1000/2000港币的私局，有三个大陆老板，每人带了至少500万。你要来吗？"你攥着电话，心跳加速。你知道这种局的鱼有多大，但你也知道——澳门吃人不吐骨头。（灵感：Tom Dwan澳门高额私局沉沦史）',minAge:26,maxAge:48,weight:7,mode:'once',conditions:{minSkill:40,minBankroll:100000},choices:[{text:'订机票！这可是澳门高额局',effects:{bankroll:2000000,skill:5,mental:-8,health:-5},feedback:'你三天赢了180万港币。但你也注意到：第五天开始，桌上的"老板"换成了几个你从未见过、打法极其凶悍的人。',setFlag:'macau_trip'},{text:'太远了，线上打打就行',effects:{mental:5,health:3},feedback:'你婉拒了。但你知道自己错过了一个可能改变人生级别的牌局。'}]},
+  {id:104,title:'债务旋涡',text:'澳门之后，你又去了三次。第四次开始输了。第五次你想翻本，借了200万港币。第六次——你已经不敢算了。你的微信里有七个催债的未读消息。那个广东男人已经不接你电话了。（原型：Tom Dwan被传$3000万债务+Erick Lindgren欠$1200万破产）',minAge:28,maxAge:52,weight:9,mode:'once',conditions:{requiredFlags:['macau_trip'],maxMental:55},choices:[{text:'卖掉所有资产还债',effects:{bankroll:-300000,mental:5,reputation:-15},feedback:'你卖了两套房、一辆车、所有奢侈品。还完债的那天，你在空荡荡的出租屋里坐了整整一天。',setFlag:'debt_spiral'},{text:'抢银行不如抢牌桌，继续打',effects:{mental:-20,bankroll:-200000,health:-15},feedback:'借新还旧的循环开始了。你开始躲避所有老朋友。扑克不再是游戏，是通往地狱的单行道。',setFlag:'debt_spiral'}]},
+  {id:105,title:'全网追债',text:'你的名字出现在了一个扑克论坛的"追债帖"里。有人贴出了你欠款的聊天记录。评论区300多条，有人说你是骗子，有人说你只是"又一个被澳门吃掉的pro"。你的赞助商发来了解约邮件。（原型：Doug Polk估算多名高额pro总债务达数千万美元）',minAge:29,maxAge:55,weight:10,mode:'once',conditions:{requiredFlags:['debt_spiral'],minReputation:20},choices:[{text:'公开道歉，承诺分期还款',effects:{mental:5,reputation:5,bankroll:-50000},feedback:'你发了很长的道歉信。有人原谅了你，有人没有。你开始打最低级别，每一分盈利都用来还债。'},{text:'消失',effects:{mental:-15,reputation:-25,health:-10},feedback:'你注销了所有社交账号。你换了一个城市，一个名字。但你知道——你欠的不只是钱。',setFlag:'disgraced'}]},
+  // === 体育博彩陷阱 ===
+  {id:106,title:'赌场之外',text:'比赛结束后，一个牌友拉着你去赌场的百家乐区。"就玩一把，放松一下。"他说。你犹豫了一下。百家乐的桌子就在十步之外，绿色的台面和你熟悉的扑克桌不一样——但又有一些危险的相似。（原型：Erick Lindgren每场体育博彩下注$5-10万到破产；Archie Karas百家乐两天输$3000万）',minAge:25,maxAge:55,weight:6,mode:'once',conditions:{minBankroll:50000},choices:[{text:'就玩一点，控制好就行',effects:{bankroll:-20000,mental:-10,health:-5},feedback:'一点变成了很多。百家乐不需要技术——这才是最危险的地方。',setFlag:'gambling_trap'},{text:'不碰。扑克是我的专业，其他的我不懂',effects:{mental:8,skill:2},feedback:'你回了酒店房间。第二天早上听说那个牌友一夜输了30万。'}]},
+  {id:107,title:'赌徒的深渊',text:'你开始对扑克失去兴趣——百家乐更快，体育博彩更刺激。你发现自己在下注的时候不需要思考，这反而成了一种解脱。但你的bankroll在无声地燃烧。这不是下风期，这是自我毁灭。（真实数据：75%+的职业牌手退役3年内申请破产，场外赌博是头号杀手）',minAge:26,maxAge:55,weight:8,mode:'once',conditions:{requiredFlags:['gambling_trap'],maxMental:50},choices:[{text:'去戒赌中心',effects:{mental:15,health:8,bankroll:-30000},feedback:'你在戒赌中心住了一个月。你遇到了一个曾经月入$300K、如今睡在收容所的牌手。他的眼睛让你三天睡不着觉。',setFlag:'recovery'},{text:'我能控制，只是最近运气差',effects:{mental:-25,bankroll:-200000,health:-15},feedback:'运气没有回来。你终于理解了Stu Ungar为什么死在汽车旅馆——不是因为牌打不过别人，而是因为下了牌桌才是真正的赌局。',setFlag:'disgraced'}]},
+  // === 臧书奴式翻盘 ===
+  {id:108,title:'开香槟的人不是你',text:'决赛桌。单挑。你的对手已经让人打开了香槟。他对着自己的亲友团竖起大拇指，提前庆祝。你低头看了一眼自己的筹码——你是短码，胜率不到30%。但你想起一个人：臧书奴。他当年也是这样，对手提前开了香槟，而一小时后捧杯的是他。',minAge:28,maxAge:55,weight:8,mode:'once',conditions:{minSkill:30,minMental:40,minBankroll:20000},choices:[{text:'全押。让香槟换人喝',effects:{bankroll:3000000,mental:25,reputation:20},feedback:'你连追三手。香槟被放回了冰桶。对手的脸从笑容变成了铁青。你举杯的时候只说了一句："牌桌上的事，发完河牌才算。"'},{text:'稳扎稳打，争取翻倍',effects:{bankroll:800000,mental:10,reputation:8},feedback:'你稳住了。虽然没夺冠，但你让那个提前开香槟的人再也不敢在河牌前庆祝。'}]},
+  // === 保险机制 ===
+  {id:109,title:'买不买保险',text:'你All-in领先，对手只有3张Outs。荷官问你要不要买保险。底池8万，保费按赔率算下来要付2000。买的话，对手追到Outs你赔6万；不买的话，长期来看数学站在你这边——但2.7%的概率，你敢赌吗？（中国特有机制：全押保险，长期-EV但提供心理安全）',minAge:22,maxAge:60,weight:8,mode:'repeat',conditions:{minBankroll:10000},choices:[{text:'不买！数学不会骗人',effects:{mental:3,skill:2,bankroll:200000},feedback:'河牌平安。你收了底池。但你知道，下次可能没那么好运。'},{text:'买！2000块买个安心',effects:{bankroll:-2000,mental:8,skill:-1},feedback:'你买了。河牌发出了一张Outs。保险赔了你6万。虽然理论上你亏了钱，但此刻你觉得每一分保费都值。'}]},
+
+  // === Meme & 文化彩蛋事件 ===
+  {id:110,title:'Fold Pre 的哲学',text:'输了这手牌之后，你打开2+2论坛。热评第一只有五个字母：Fold Pre。你愣了一下，然后笑了。这句扑克圈最著名的马后炮，既是笑话也是真理。如果翻牌前就弃了，后面的痛苦都不会发生。但那就不是扑克了，不是吗？',minAge:20,maxAge:60,weight:5,mode:'once',conditions:{},choices:[{text:'关掉论坛，笑着继续打',effects:{mental:3},feedback:'你对着屏幕自言自语了一句Fold Pre。这个词从此成了你和朋友之间的暗号。'},{text:'认真反思：我是不是真的该fold更多牌',effects:{skill:3,mental:1},feedback:'你打开Tracker，发现自己最近几个session的VPIP确实太高了。Fold Pre——有时候最简单的建议就是最好的。'}]},
+  {id:111,title:'世界上最孤独的AA',text:'你低头看到口袋A。整张桌子你第一个行动。你加注。全桌弃牌。你赢了1.5个大盲。你盯着那两张A，忽然觉得它们像两个被世界遗弃的孩子。有人发了一条弹幕："I don\'t always get a good hand, but when I do, everyone folds."',minAge:22,maxAge:60,weight:6,mode:'repeat',conditions:{minSkill:20},choices:[{text:'苦笑一下，继续下一手',effects:{mental:-1},feedback:'你安慰自己：至少没输。但你心里知道，拿到AA却赢不到钱的感觉，比被Bad Beat还难受。'},{text:'下次拿到AA要改变打法',effects:{skill:2,reputation:1},feedback:'你开始研究如何在拿到强牌时诱导对手入池。这可能是扑克最微妙的艺术之一。'}]},
+  {id:112,title:'AK不梭是棒槌',text:'你拿到AK。前位加注，你三倍加注，对手四倍全下。你想起那句中国扑克圈的俗语——"AK不梭哈是棒槌"。但你也记得一个老pro告诉过你：深筹码下，AK全下往往是自杀。你犹豫了。（中国特有梗）',minAge:22,maxAge:55,weight:6,mode:'repeat',conditions:{minSkill:25,minBankroll:10000},choices:[{text:'梭！棒槌就棒槌',effects:{bankroll:150000,mental:5,reputation:2},feedback:'对手亮出QQ。翻牌A。你收了底池。"棒槌！"你对着屏幕大喊——但你知道下一次可能就是撞墙。'},{text:'冷静，这不值得全下',effects:{skill:3,mental:3},feedback:'你弃了。对手亮出AA。你长出一口气。"不梭是棒槌？"你自言自语，"活着才有资格继续当棒槌。"'}]},
+
+  // === 翻盘事件池（bankroll/mental 极低时高权重触发，制造 V 型曲线） ===
+  {id:113,title:'最后一颗筹码',text:'你账户里只剩800块。这是你能买到的最小级别NL10的一个买入。你的手在发抖——不是因为紧张，是因为吃了三天泡面。但牌桌不认眼泪，只认筹码。',minAge:20,maxAge:58,weight:12,mode:'repeat',conditions:{maxBankroll:8000,minBankroll:500},choices:[{text:'专注打最低级别，一颗一颗啃回来',effects:{bankroll:18000,mental:8,skill:4,health:-3},feedback:'你连续打了两周NL10到NL50。结束时bankroll回到了18000。你又站起来了——但这两周泡面和缺觉，身体在透支。慢，但有尊严。'},{text:'急了，上NL100梭一把',effects:{bankroll:60000,mental:-10,skill:-3},feedback:'你梭了NL100，运气站在你这边，6万到账。但你的大脑记住了"梭哈能翻身"这个致命的多巴胺回路——三个月后你会为今晚的选择付出远超6万的代价。陷阱先给甜头。'}]},
+  {id:114,title:'那个电话',text:'凌晨三点，bankroll见底，你坐在出租屋的地板上。手机突然亮了——是三年没联系的老朋友。"我听说你最近不太好，"他说，"要不要出来喝一杯？"',minAge:22,maxAge:60,weight:11,mode:'repeat',conditions:{maxMental:25},choices:[{text:'去。把心里的东西说出来',effects:{mental:25,health:5,reputation:3},feedback:'你们在天台喝到天亮。他没给你钱，也没给你建议。他只是听着。但第二天醒来，你觉得世界又有点亮了。'},{text:'不接。没人能帮我',effects:{mental:-10,health:-3},feedback:'手机响了十声，停了。你继续坐在地板上。有些电话错过了，就真的错过了。'}]},
+  {id:115,title:'凌晨的session',text:'你已经连续亏损两个月，下风期像一条没有尽头的隧道。但你今晚状态出奇地清醒。你打开四桌，深吸一口气。',minAge:24,maxAge:58,weight:10,mode:'repeat',conditions:{maxMental:35,minSkill:25},choices:[{text:'严格守BRM，见好就收',effects:{bankroll:18000,mental:8,skill:3,health:3},feedback:'你打出了A-game，+9个买入收手。事后复盘发现今晚是你近期状态最好的，提前下桌少赚了——但保住了健康，这才是下风期里最稀缺的资源。'},{text:'榨干状态，通宵加桌加量',effects:{bankroll:40000,mental:-5,skill:5,health:-6},feedback:'你打了14小时，+20个买入。但你开始出现一个危险模式——依赖"状态好就拼命"的节奏，这正在侵蚀你的长期稳定性。今晚的赢，可能是未来burnout的伏笔。'}]},
+  {id:116,title:'打零工的日子',text:'为了维持生活，你白天去餐厅端盘子，晚上才打几小时牌。同事们不知道你曾经赢过几十万。你也懒得解释。',minAge:22,maxAge:55,weight:8,mode:'repeat',conditions:{maxBankroll:15000},choices:[{text:'坦然面对，低物欲熬过这段',effects:{bankroll:20000,mental:14,health:3},feedback:'端盘子的日子反而让你心态变好了。你不再为一两个买入激动或崩溃。半年后你重新全职打牌，整个人脱胎换骨。'},{text:'觉得丢人，赌气加注回本',effects:{bankroll:-5000,mental:-10},feedback:'你带着怨气上桌，输得更快了。自尊心是扑克选手最贵的奢侈品——你付不起。'}]},
+
+  // === 中老年新剧情（充实 50-60 岁事件池，减少空转） ===
+  {id:117,title:'老对手重逢',text:'你在澳门的一场老将邀请赛上，遇到了二十年前和你一起在NL50摸爬滚打的老张。他头发花白了，但眼神还是那么锐利。你们坐在同一张牌桌上，相视一笑。',minAge:48,maxAge:60,weight:9,mode:'once',conditions:{minSkill:50,minReputation:40},choices:[{text:'和他叙旧，享受这场"老友局"',effects:{mental:18,reputation:8,skill:2},feedback:'你们打了一整夜。最后谁也没赢多少，但你们交换了二十年的故事。老张说："能打到我们这个岁数还没散的，都是真朋友。"'},{text:'认真对待，把他当对手',effects:{bankroll:30000,reputation:10,mental:5,skill:5},feedback:'你赢了老张三万。他笑着说："小子，还是那么较真。"然后请你吃了顿葡国菜。'}]},
+  {id:118,title:'身体亮红灯',text:'体检报告出来了。血压偏高、脂肪肝、颈椎曲度变直。医生用笔在"职业因素"那一栏画了个圈，看了你一眼。二十年的牌桌生涯，身体开始结账了。',minAge:42,maxAge:60,weight:10,mode:'repeat',conditions:{maxHealth:60},choices:[{text:'认真调整作息，开始运动',effects:{health:20,mental:8,skill:-2,bankroll:-8000},feedback:'你办了健身卡，请了私教。三个月后体检指标全面好转。你打牌的时长少了，但效率反而高了。'},{text:'打牌要紧，身体以后再说',effects:{health:-15,mental:-5},feedback:'你继续熬夜。但牌桌上你开始频繁走神，错过的value越来越多。身体欠的债，迟早要还。'}]},
+  {id:119,title:'徒弟出师',text:'你带了三年的徒弟第一次打进WSOP钱圈。他在视频通话里哭着感谢你。你看着他胸前的参赛证，想起自己二十年前第一次来拉斯维加斯的样子。',minAge:45,maxAge:60,weight:8,mode:'once',conditions:{minReputation:50,minSkill:60},choices:[{text:'把毕生所学整理成体系传给他',effects:{reputation:20,mental:15,skill:5},feedback:'你花了半年整理自己的全部笔记、Solver数据库、打法心得。交给他那天，你说："现在我教你的，是我用二十年换来的。"他哭了。',setFlag:'mentor_master'},{text:'点到为止，路要他自己走',effects:{mental:8,reputation:5},feedback:'你只给了他最关键的几个建议。你知道，真正的东西必须自己摔出来，别人给不了。'}]},
+  {id:120,title:'回不去的故乡',text:'过年回了趟老家。村口的老槐树还在，但打你小的李叔已经走了。你站在老房子门口，忽然意识到：你在外面赢了那么多牌局，却输了太多回来看他们的机会。',minAge:45,maxAge:60,weight:9,mode:'once',conditions:{minReputation:30},choices:[{text:'多留几天，好好陪陪父母',effects:{mental:20,health:8},feedback:'你推掉了所有线上赛事，在老家待了一周。临走那天你妈塞了一袋自家种的菜给你。飞机上你看着那袋菜，眼泪止不住。'},{text:'打完这一周就走，赛事不能停',effects:{mental:-8,health:-3,bankroll:10000},feedback:'你赢了点钱，但飞机上你一直想着老房子门口那盏灯。有些东西，钱买不回来。'}]},
+  {id:121,title:'时代的浪潮',text:'00后的年轻牌手开始统治线上榜单。他们的Solver用得比你熟，GTO理解比你深，多表操作比你快。你看着排行榜，第一次清晰地感觉到：自己老了。',minAge:42,maxAge:60,weight:8,mode:'once',conditions:{minSkill:55},choices:[{text:'向年轻人学习，更新知识库',effects:{skill:8,mental:5,health:-2},feedback:'你拜了一个00后当"反向导师"。他教你最新的Solver工作流，你教他读人和心态。你们成了忘年交。'},{text:'坚持自己的风格，经验也是优势',effects:{skill:3,mental:-5,reputation:3},feedback:'你继续用老办法。赢的局越来越少，但你安慰自己：真正的edge在读人，不在算Solver。'}]},
+  {id:122,title:'传帮带',text:'一个扑克媒体找你做一档节目：《一代宗师》。每期访谈一位老牌手，讲讲这个行业的变迁。编导说："您是最后一批见证过中国扑克从无到有的人了。"',minAge:50,maxAge:60,weight:7,mode:'once',conditions:{minReputation:55,minSkill:50},choices:[{text:'答应，把这些故事留下来',effects:{reputation:18,mental:12,bankroll:20000},feedback:'节目前三期就破了百万播放。很多年轻牌手在弹幕里说："原来这条路是这么走过来的。"你忽然觉得，讲故事比打牌更有意义。'},{text:'我打牌行，做节目不行',effects:{mental:3},feedback:'你婉拒了。但每次看到那档节目换了别人主持，你都会想：那些故事，本来应该是你讲的。'}]},
+
+  // === 心态起伏补强（增加 mental 下坠与回升的张力） ===
+  {id:123,title:'质疑',text:'你又开始怀疑了。打了这么多年，你到底是为了什么？是为了钱？可你已经够花了。是为了赢？可赢的感觉越来越淡。你坐在牌桌前，第一次觉得手里的筹码没有温度。',minAge:35,maxAge:58,weight:8,mode:'repeat',conditions:{minSkill:45,minMental:30},choices:[{text:'停下来，认真想清楚再继续',effects:{mental:15,health:5,skill:2},feedback:'你休息了两周。你去爬了一座山，在山顶看日出的时候，忽然想明白了：你不是为了赢，你是为了那种"把一件事做到极致"的感觉。'},{text:'继续打，想多了打不好牌',effects:{mental:-10,skill:-2},feedback:'你强迫自己上桌。但今天的状态很差，连输五个买入。你知道问题不在牌，在心里。'}]},
+  {id:124,title:'那封邮件',text:'一封陌生邮件躺在收件箱："你好，我是一个大学生。我看了你所有的复盘视频，是你让我相信普通人也能靠扑克养活自己。我下周要第一次去线下比赛，能不能给我一句建议？"你看着这封邮件，想起自己第一次坐在牌桌前的样子。',minAge:30,maxAge:60,weight:8,mode:'repeat',conditions:{minReputation:40},choices:[{text:'认真回一封信',effects:{mental:18,reputation:8},feedback:'你写了很长。最后一句是："记住，这行能成功的不到1%，但热爱本身已经是回报。"发出后你觉得，自己又找回了点最初的温度。'},{text:'太忙了，回一句"加油"就行',effects:{mental:-3,reputation:-2},feedback:'你回了两个字。但合上电脑时，你心里有点不舒服。'}]},
+  {id:125,title:'重新热爱',text:'不知道从哪一天开始，你发现自己又能享受打牌了。不是为了赢钱，不是为了排名，只是单纯喜欢那种思考、博弈、读人的感觉。你好像回到了二十年前第一次all-in的那个夜晚。',minAge:40,maxAge:60,weight:9,mode:'repeat',conditions:{minMental:50,minSkill:50},choices:[{text:'享受这种纯粹的快乐',effects:{mental:20,health:5,skill:4},feedback:'你打了人生中最享受的一场session。输赢都不重要，重要的是你又爱上了这件事。这比任何奖杯都珍贵。'},{text:'趁机加量，趁手感好多赢',effects:{bankroll:15000,mental:-3},feedback:'你赢了一些钱，但那种纯粹的快乐又溜走了。你握着鼠标，忽然有点怅然。'}]},
+
+  // === 翻盘阶梯（5千-5万区间，填补"爬出谷底"的中段回升路径） ===
+  {id:126,title:'重回NL50',text:'你从谷底爬起来了，bankroll回到了8000。但离你曾经的级别还差很远。你重新注册了NL50——这是你五年前就毕业的级别。重新坐回这张桌子，有点屈辱，也有点踏实。',minAge:22,maxAge:58,weight:11,mode:'repeat',conditions:{minBankroll:5000,maxBankroll:25000,minSkill:20},choices:[{text:'放下身段，认真对待每一手',effects:{bankroll:18000,mental:10,skill:3},feedback:'你打了2000手NL50，+9bb/100。你重新找回了节奏。级别不重要，重要的是你还在牌桌上。'},{text:'急着想回到高级别，强行升级',effects:{bankroll:-6000,mental:-8},feedback:'你在NL100被一个reg清了两个买入。你意识到：心急的代价，比下风期还贵。'}]},
+  {id:127,title:'找回手感',text:'你已经连续一周盈利了。那种久违的"什么都能赢"的感觉回来了。你的bankroll在稳步回升，离50000的目标越来越近。',minAge:22,maxAge:58,weight:10,mode:'repeat',conditions:{minBankroll:15000,maxBankroll:45000,minSkill:25},choices:[{text:'保持节奏，稳步推进',effects:{bankroll:25000,mental:8,skill:3},feedback:'你又一个+的周。你的bankroll曲线开始向上爬了。你知道这才刚刚开始，但你已经不一样了。'},{text:'状态正好，加桌加量',effects:{bankroll:40000,mental:-3,health:-2},feedback:'你打了16个小时。赢了，但身体在抗议。不过看着回升的数字，你觉得值。'}]},
+  {id:128,title:'债主来了',text:'你曾经借过钱的朋友突然找上门。不是催，是"问候"。但你知道，每一句问候里都藏着一句"什么时候还"。你的bankroll刚有点起色，这笔债像个影子。',minAge:25,maxAge:55,weight:9,mode:'repeat',conditions:{minBankroll:10000,maxBankroll:40000},choices:[{text:'主动联系，承诺还款计划',effects:{bankroll:-15000,mental:12,reputation:5},feedback:'你转了15000过去，附上"剩下的一年内还清"。对方回了个"不急"，但你知道，从今天起你又是个值得信任的人了。'},{text:'先稳住自己的bankroll再说',effects:{mental:-8,reputation:-3},feedback:'你装作没看见消息。但那笔债像块石头，压得你每次看到他的头像都心头一紧。'}]},
+  {id:129,title:'那个学生',text:'一个你曾随手点拨过的年轻牌手，现在小有成就了。他主动找到你，说想拜你为师，学费照付。bankroll紧张的你，看着那个数字，犹豫了。',minAge:28,maxAge:58,weight:8,mode:'repeat',conditions:{minBankroll:8000,maxBankroll:35000,minSkill:35},choices:[{text:'收下他，认真教',effects:{bankroll:20000,mental:10,reputation:8,skill:2},feedback:'你收了他30000学费，把毕生所学倾囊相授。三个月后他打进了NL200。你看着他的成长曲线，比自己的还开心。'},{text:'我现在自顾不暇，等东山再起再说',effects:{mental:-3},feedback:'你婉拒了。他祝你早日恢复。你挂了电话，有点后悔——不是为钱，是为那份信任。'}]},
+
+  // === Bad Beat 高波动事件组（低频高烈度，纪律选项能止损，符合扑克主题） ===
+  {id:130,title:'Bad Beat',text:'翻牌前你拿到AA，对手全下你秒call。对手是72o。翻牌7-2-2。转牌7。河牌——7。四条。你的AA在河牌被四条击溃。你盯着屏幕整整三分钟没动。',minAge:20,maxAge:60,weight:4,mode:'repeat',conditions:{minBankroll:3000,minSkill:15},choices:[{text:'关掉电脑，出去走走',effects:{bankroll:-20000,mental:3,health:3},feedback:'你在楼下走了两个小时。回来之后你没有复盘这手——因为你知道，这手牌你打得没错。运气是扑克唯一无法控制的部分。及时离桌，是职业牌手的素养。'},{text:'立刻开新桌，赢回来',effects:{bankroll:-60000,mental:-15,health:-3},feedback:'你红着眼开了八桌。三个小时后，你又输了10000。tilt的代价，永远比bad beat本身更大。'}]},
+  {id:131,title:'史诗级Heater',text:'你今天的状态神了。每一手read都精准，每一个bluff都成功，river总是发你需要的牌。你甚至觉得牌桌在对你微笑。九个小时，+12个买入。',minAge:20,maxAge:60,weight:4,mode:'repeat',conditions:{minSkill:20},choices:[{text:'见好就收，落袋为安',effects:{bankroll:150000,mental:12,health:-2},feedback:'你关掉了所有桌子，看着余额笑了。你知道heater总会结束，但今天的钱是真实的。'},{text:'手感正热，继续打',effects:{bankroll:250000,mental:-5,health:-8},feedback:'你打了18个小时，赢到+18个买入。但最后两小时你把一半还了回去。贪婪是heater的天然敌人。'}]},
+  {id:132,title:'Set over Set',text:'翻牌7-7-2。你手里是22，中了set。对手all in，你激动地call。他亮出77——set of sevens。你的set of twos一文不值。你甚至来不及高兴，就已经输了。',minAge:22,maxAge:58,weight:3,mode:'repeat',conditions:{minBankroll:5000,minSkill:20},choices:[{text:'这是扑克，默默补筹码继续',effects:{bankroll:-30000,mental:-3,skill:2},feedback:'你默默补了筹码。set over set，155倍的概率。你今天就是那个倒霉的1/155。明天可能就是幸运的那个。'},{text:'这牌没法打，今晚到此为止',effects:{bankroll:-30000,mental:5,health:2},feedback:'你提前结束了session。有时候止损比翻本更难，也更聪明。今晚你选择了前者。'}]},
+  {id:133,title:'One Outer',text:'河牌发出来之前，你99.9%领先。只剩一张牌能让你输。荷官翻出那张牌的瞬间，整个牌室安静了一秒，然后爆发出笑声——不是对你的同情，是对概率的嘲弄。One outer。你成了今晚的故事。',minAge:22,maxAge:60,weight:3,mode:'repeat',conditions:{minBankroll:8000},choices:[{text:'笑了笑，给对手鼓掌',effects:{bankroll:-40000,mental:8,reputation:8},feedback:'你站起来，真心为对手鼓掌。整个牌室都为你这风度鼓掌。后来有人把你这段视频发到群里，标题是"输得起的人才能赢到底"。你的气度比那手牌更值钱。'},{text:'摔牌走人',effects:{bankroll:-40000,mental:-12,reputation:-5},feedback:'你摔了牌。整个牌室安静了，但那种安静是尴尬的。你知道自己失态了，但那时候控制不住。'}]},
+  {id:134,title:'冷撤退',text:'连续六天，你没有一天盈利。每一手好牌都被bad beat，每一个bluff都被抓。你的下风期来了，来得又深又长。你看着自己一路向下的曲线，开始怀疑一切。',minAge:24,maxAge:58,weight:4,mode:'repeat',conditions:{minSkill:25,maxMental:55},choices:[{text:'严格执行止损，休息几天',effects:{bankroll:-5000,mental:12,health:5,skill:-2},feedback:'你关掉了软件。三天后回来，心态重置了，但手感有点生——休息的代价是技术暂时钝化。下风期会过去，但停滞感是真实的。'},{text:'越输越打，在地狱里复盘',effects:{bankroll:-18000,mental:-8,skill:6,health:-5},feedback:'你打了下去，曲线继续向下。但极端压力逼迫你逐手复盘，你对下风期的理解反而跃迁了——一些顶尖 pro 就是在地狱下风期完成技术进化的。痛，但学到了东西。'}]},
+  {id:135,title:'复仇之夜',text:'那个三天前用one outer bad beat你的人，今晚又坐到了你对面。你的血往头上涌。但你也知道：带着复仇情绪上桌，是扑克最大的禁忌之一。',minAge:24,maxAge:55,weight:4,mode:'repeat',conditions:{minSkill:30,minBankroll:10000},choices:[{text:'把他当普通对手，正常打',effects:{bankroll:100000,mental:10,skill:3},feedback:'你压制住了情绪。三个小时后，你凭借纯技术赢了他15000。他没有bad beat你了——因为这次你没有给他机会。这是最好的复仇。'},{text:'针对他，专门搞他',effects:{bankroll:-30000,mental:-12},feedback:'你过度bluff他，被抓了三次。情绪化的扑克，永远是最贵的扑克。你输给的不是他，是自己。'}]},
+
+
+  // === 巅峰期剧情补充（35-50岁，丰富内容深度） ===
+  {id:136,title:'中年危机',text:'你39岁了。某天洗澡时，你看着镜子里的自己，忽然问：我到底在干什么？你有存款，有名气，有学生。但你没有一个正常的家，没有周末，没有"下班"。扑克吃掉了你的整个三十岁。',minAge:35,maxAge:48,weight:8,mode:'once',conditions:{minBankroll:200000,minSkill:50},choices:[{text:'认真考虑退出，回归生活',effects:{mental:18,health:8,reputation:-3},feedback:'你请了三个月假，去了一直想去的西藏。在纳木错湖边，你想清楚了：扑克可以是事业，但不能是全部。'},{text:'这正是巅峰，不能停',effects:{skill:5,mental:-10,health:-3},feedback:'你继续打。数据很好看，但你开始失眠。凌晨三点醒来，盯着天花板，不知道自己在追什么。'}]},
+  {id:137,title:'回不去的桌',text:'你回到十年前常去的那家俱乐部。它还在，但物是人非。当年的老朋友们散的散、退的退。只有那张绿色的桌布，还是你记忆里的颜色。你坐下来，摸了摸牌。',minAge:38,maxAge:55,weight:7,mode:'once',conditions:{minReputation:40,minSkill:45},choices:[{text:'和老朋友们打一局纪念局',effects:{mental:20,reputation:5,skill:2},feedback:'你们打了一整夜，聊了十年。输赢不重要，重要的是你们都还在。临走时老王说："下次不知道什么时候了。"你点头，没说话。'},{text:'物是人非，看一眼就走',effects:{mental:-5},feedback:'你站在门口看了五分钟，转身离开。有些桌，坐一次少一次。'}]},
+  {id:138,title:'传承',text:'一个年轻牌手在赛后找到你，递上一本笔记本："这是我这两年的所有复盘，能不能请您指点？"你翻开第一页，看到自己当年的影子——那种青涩、较真、和不知天高地厚的热爱。',minAge:38,maxAge:58,weight:8,mode:'once',conditions:{minReputation:50,minSkill:55},choices:[{text:'收他为徒，倾囊相授',effects:{reputation:15,mental:15,skill:3},feedback:'你花了半年，把毕生所学整理给他。交接那天，他在笔记本扉页写下："献给带我看见远方的人。"你忽然觉得，自己这辈子没白活。',setFlag:'mentor_master'},{text:'指点几句，路要他自己走',effects:{mental:8,reputation:3},feedback:'你给了他三个建议，最重要的一个是："永远别爱上你手里的牌。"他似懂非懂地点头。你笑了——有些道理，只能自己撞出来。'}]},
+  // ===== Phase 2 新增事件（id 139+）=====
+
+  // ---- 链8：中段回升 bankroll 45000-200000（填补 Phase1 缺口）----
+  {id:139,title:'一夜回到NL100',text:'NL500 连输 18 个买入，bankroll 从 9 万缩到 4500。你被迫降级回 NL100。耻辱、不甘、还有一丝如释重负——至少今晚不会输到睡不着。',minAge:24,maxAge:42,weight:6,mode:'once',conditions:{maxBankroll:8000,minSkill:25},choices:[{text:'接受现实，从NL100重新爬',effects:{mental:8,skill:2,bankroll:3000},feedback:'你在 NL100 坐下。第一个小时你输了一个买入——不是因为技术，是因为你还在用 NL500 的 sizing。你调整了，开始赢回来。慢，但是真实。'},{text:'不服，找朋友借5000硬扛NL500',effects:{mental:-10,bankroll:-3000},setFlag:'chase_losses',feedback:'你借了钱回到 NL500。第一手 AA 被 set over set 清掉。你盯着屏幕，开始怀疑自己是不是真的还会打牌。'}]},
+  {id:140,title:'NL100的羞耻重逢',text:'当年被你在 NL500 屠杀的鱼，现在跟你在 NL100 同桌。他认出你了，全桌哄笑。',minAge:24,maxAge:44,weight:5,mode:'repeat',conditions:{maxBankroll:12000,minSkill:30},choices:[{text:'装没听见，用结果说话',effects:{mental:-5,skill:4,bankroll:2500},feedback:'你一言不发地打了三小时，赢了他 2500。临走他不再笑了。但那句话你记了很久——它提醒你，体面是脆弱的。'},{text:'自嘲化解，请全桌喝饮料',effects:{mental:5,reputation:3,bankroll:-200},feedback:'你笑了。全桌气氛松了。你发现自己心态反而稳了——能自嘲的人，没那么容易 tilt。'}]},
+  {id:141,title:'诚实复盘那手KQs',text:'bankroll 回到 1.2 万，你重看 NL5K 暴跌那手 KQs 河牌 bluff。你终于承认：sizing 选错了，你太想赢，所以 overbet 暴露了范围。',minAge:25,maxAge:45,weight:6,mode:'once',conditions:{minBankroll:8000,maxBankroll:20000,minSkill:35},choices:[{text:'把复盘写成笔记，逼自己面对',effects:{skill:6,mental:-3},feedback:'你写了 2000 字。写到一半你关掉文档出去抽了根烟。承认自己上头，比输钱更难受。但写完之后，你的 KQs 范围再也没有犯过那个错。'},{text:'算了，翻篇，往前看',effects:{mental:3,skill:-2},feedback:'你关掉视频。有些伤疤你不想再碰。但下个月，你在 NL200 又犯了同样的 sizing 错误——未完成的复盘会以技术漏洞的形式回来。'}]},
+  {id:142,title:'重新摸到NL200门槛',text:'bankroll 攒到 1.5 万，按 30 buy-in 规矩可以上 NL200 了。但上次的暴跌还历历在目——这一次，稳一点还是直接上？',minAge:25,maxAge:46,weight:7,mode:'repeat',conditions:{minBankroll:12000,maxBankroll:25000,minSkill:38},choices:[{text:'再攒一个月，稳到2万再上',effects:{mental:4,bankroll:4000,skill:2},feedback:'你又磨了一个月 NL100。无聊、缓慢、但踏实。2 万那天你上 NL200，心态稳得像块石头。'},{text:'直接上NL200，趁手感正热',effects:{bankroll:6000,mental:-4,skill:3},feedback:'你上了。前两天顺风顺水，第三天遇到一个硬 reg 连输三个买入。你想起上次——但这次你没有 tilt，因为你记得复盘的教训。'}]},
+  {id:143,title:'老朋友的stake援助',text:'bankroll 2.5 万，你刚重回 NL500。老友主动提出：他出 3 万，五五分成，帮你直接跳 NL1K。"你水平够了，就是差弹药。"',minAge:26,maxAge:48,weight:5,mode:'once',conditions:{minBankroll:20000,maxBankroll:40000,minSkill:45},choices:[{text:'接受，感恩但要证明自己配得上',effects:{bankroll:30000,mental:-5,reputation:3},setFlag:'staking_accepted',feedback:'你接受了。当晚你打出了职业生涯最稳的一周——不是因为你更强了，是因为你在替别人负责时，反而打得更像自己。'},{text:'婉拒，我要自己一步步爬',effects:{mental:6,skill:2,bankroll:2000},feedback:'你拒绝了。老友拍了拍你。那一晚你上 NL500 独自坐定——有些路，只能自己走，但你走得更硬气。'}]},
+  {id:144,title:'破20万的这次不一样',text:'bankroll 重新摸到 20 万，NL2K 门槛。上一次你在这个数字时，三个月内全部回吐还倒亏。这次，你要不要先抽 5 万出来锁住成果？',minAge:27,maxAge:50,weight:6,mode:'once',conditions:{minBankroll:180000,minSkill:50},choices:[{text:'抽5万锁住，先保证不重蹈覆辙',effects:{bankroll:-50000,mental:10,reputation:2},setFlag:'brm_disciplined',feedback:'你提了 5 万出来，存进单独的账户。看着余额从 20 万变成 15 万有点肉疼，但你睡得着觉了。上次的噩梦，不会再来。'},{text:'全部留在桌上，这次我扛得住',effects:{bankroll:20000,mental:-8},feedback:'你没抽。第一个月又涨了 3 万，你觉得自己成长了。但第二个月一次 8 万的回撤让你半夜惊醒——你才意识到，这次不一样是赌徒最常对自己说的话。'}]},
+
+  // ---- 链18：Rollercoaster 激活（设置 rollercoaster_end flag，让该结局首次可达）----
+  {id:145,title:'第一次清零',text:'bankroll 归零。不是一次 bad beat，是一连串错误的累积。你看着 0.00 的余额，第一次体会到什么叫地心引力。',minAge:22,maxAge:45,weight:4,mode:'once',conditions:{maxBankroll:3000},choices:[{text:'认输，找份正经工作',effects:{mental:5,health:5,bankroll:5000},setFlag:'comeback',feedback:'你删了所有扑克软件，去送了两周外卖。第七天你站在天桥上看着车流，发现自己居然在脑子里算每辆车的EV——你根本忘不掉这游戏。'},{text:'借钱翻本，我不能就这样结束',effects:{mental:-10,bankroll:3000},setFlag:'debt_spiral',feedback:'你借了 3000。第一晚翻到 8000，你觉得天亮了。你不知道的是，这只是第一次循环。'}]},
+  {id:146,title:'第一次翻盘',text:'3000 借来的钱，两周滚到了 12 万。你站在镜子前，几乎认不出那个眼睛通红、但嘴角带笑的人。"我回来了。"',minAge:22,maxAge:46,weight:5,mode:'once',conditions:{requiredFlags:['comeback'],minBankroll:80000},choices:[{text:'见好就收，还钱上岸',effects:{bankroll:-3000,mental:12,reputation:5},feedback:'你还了钱，请朋友吃了顿好的。那晚你睡得极沉。你以为噩梦结束了——但有些模式，一旦建立就很难打破。'},{text:'趁热打铁，上NL1K冲一波',effects:{bankroll:40000,mental:-5},feedback:'你上了 NL1K。赢了一个买入，两个，五个。多巴胺像海啸。你开始相信自己是被命运选中的人——这种信念，正是下一次清零的伏笔。'}]},
+  {id:147,title:'第二次清零',text:'历史重演。12 万变成 3 万变成 5000 变成 0。但这次更快——只用了 11 天。你看着同样的 0.00，第一次感到一种诡异的熟悉感。',minAge:24,maxAge:48,weight:4,mode:'once',conditions:{maxBankroll:3000,excludedFlags:['rollercoaster']},choices:[{text:'这次真的够了，我退出',effects:{mental:3,health:8},feedback:'你退出了。三个月后你在超市遇到以前的牌友，他问还打吗，你摇头。但你回家那晚，梦见了一手同花顺。'},{text:'……再借一次',effects:{mental:-12,bankroll:2000},feedback:'你又借了。这一次没有人愿意借给你——你打了七个电话。循环开始了。'}]},
+  {id:148,title:'第二次翻盘',text:'又是借钱、熬夜、肾上腺素、惊心动魄的逆转。2000 变成 8 万。但这一次，赢的时候你没有笑——你只是感到一种疲惫的、宿命般的平静。',minAge:25,maxAge:50,weight:5,mode:'once',conditions:{requiredFlags:['debt_spiral'],minBankroll:60000,maxBankroll:150000},choices:[{text:'停在这里，我能控制自己',effects:{bankroll:-20000,mental:8},feedback:'你抽了 2 万还债。看着剩下的 6 万，你告诉自己够了。但你发现，你不确定自己能不能做到——这种不确定本身，就是答案。'},{text:'继续，这次我要赢到再也不会输',effects:{bankroll:30000,mental:-8},setFlag:'rollercoaster',feedback:'你继续打。赢的时候你想再来一点，输的时候你想赢回来。你已经分不清是在打牌还是在对抗地心引力。'}]},
+  {id:149,title:'过山车的终点',text:'第三次。清零、翻盘、清零、翻盘。身边人早就从担心变成了麻木，再从麻木变成了疏远。你忽然意识到：你不是在打牌，你是在追逐那条曲线本身。',minAge:28,maxAge:55,weight:6,mode:'once',conditions:{requiredFlags:['rollercoaster']},choices:[{text:'在这次的高点主动停下来',effects:{bankroll:-100000,mental:20,reputation:5,health:10},setFlag:'cycle_broken',feedback:'你提走了所有的钱，注销了所有账号。那晚你大哭了一场——不是悲伤，是释然。多年后你说：最难的不是戒赌，是承认自己曾经上瘾。'},{text:'……再来一次，最后最后一次',effects:{bankroll:-50000,mental:-20,health:-10},setFlag:'rollercoaster_end',feedback:'你说最后一次，就像前两次说的一样。曲线继续。但这一次，连你自己都知道，不会有最后了——你已经成了那条曲线本身。'}]},
+
+  // ---- 链19：传承与告别 51-60岁（填补最严重的内容荒漠）----
+  {id:150,title:'同辈牌手的第一个葬礼',text:'当年一起在 NL5K 搏杀的老搭档心梗走了。葬礼上你看着遗像，第一次认真地想：下一个会不会是我？他赢了二十年，最后输给了身体。',minAge:48,maxAge:60,weight:5,mode:'once',conditions:{minSkill:40},choices:[{text:'去做全面体检，把身体当bankroll管理',effects:{health:10,mental:5,bankroll:-5000},feedback:'体检报告出来，医生说再这样打长时赛，五年内要出大事。你第一次把体能当成和 bankroll 一样重要的资源来规划。'},{text:'化悲痛为动力，打一场纪念赛',effects:{skill:4,mental:-5,bankroll:8000},feedback:'你打了一场通宵纪念赛，赢了 8000。但凌晨四点你看着筹码，想起他也是这么打到最后一天的。那 8000 突然变得很轻。'}]},
+  {id:151,title:'老花镜与河牌',text:'牌桌对面花色开始模糊。你第一次戴着老花镜打 NL1K，对面 25 岁的 reg 盯着你的眼镜看了三秒——你知道他在记你的 timing tell。',minAge:50,maxAge:58,weight:6,mode:'repeat',conditions:{minSkill:45},choices:[{text:'换大字版界面，适应新节奏',effects:{skill:3,mental:-3},feedback:'你调整了三个月。反应慢了 0.5 秒，但你用经验补回来——你知道哪些牌不用读，哪些必须盯。老花镜成了你的勋章，不是耻辱。'},{text:'不服老，继续硬打高速局',effects:{skill:-4,mental:-4,bankroll:-3000},feedback:'你硬撑了两个月。直到一次明显的 reading 错误让你输掉一个大底池——你第一次承认：身体不会永远配合你。'}]},
+  {id:152,title:'前妻带着孙子来道歉',text:'离婚 18 年。前妻带着 6 岁的孙子登门。孙子拽着你的衣角叫爷爷。你看着这个不认识你的孩子，胸口某个硬了 18 年的地方，裂开了一道缝。',minAge:50,maxAge:58,weight:7,mode:'once',conditions:{},choices:[{text:'放下，重新开始做爷爷',effects:{mental:18,health:5,reputation:3},feedback:'你哭了。18 年的怨气在孙子的一声爷爷里化了。你开始每周接他放学——扑克的部分你挑着讲。'},{text:'礼貌接待，但保持距离',effects:{mental:-5,reputation:2},feedback:'你泡了茶，聊了半小时，送他们出门。有些伤可以原谅，但没法复原——你选择了不再受伤，代价是永远错过了什么。'}]},
+  {id:153,title:'最后一次WSOP主赛事',text:'1 万买入的 WSOP Main Event，你赛前宣布这是最后一届。Day3 还剩 600 人，你筹码中游。每一手牌都可能是你职业生涯的最后一手。',minAge:50,maxAge:58,weight:8,mode:'once',conditions:{minBankroll:30000,minSkill:50},choices:[{text:'ICM稳健，体面地走完最后一程',effects:{bankroll:25000,reputation:8,mental:8},feedback:'你拿了第 87 名。没有金手链，但你打出了尊严。离场时全场起立鼓掌——不是因为你是冠军，是因为所有人都知道这是告别。'},{text:'all-in冲一把，要么传奇要么回家',effects:{bankroll:-10000,reputation:12,mental:-5,skill:3},feedback:'你用 AKs 全压，撞上 AA。翻牌 K-Q-x 给了你希望，转牌空白，河牌——一张 2。你笑了，把筹码推向对手。没有遗憾，因为你真的赌了一切。'}]},
+  {id:154,title:'子女问扑克算正经工作吗',text:'大学毕业的儿子拒收你给的 10 万血汗钱。他说：爸，我希望你做过正经事。这句话比任何 bad beat 都疼。',minAge:52,maxAge:58,weight:7,mode:'once',conditions:{minReputation:30},choices:[{text:'平静地讲你的全部故事，包括失败',effects:{mental:12,reputation:5,skill:2},feedback:'你讲了三个小时。讲到破产那夜、讲到翻盘、讲到葬礼。儿子听完说：我收回那句话。你拍拍他的肩——你不需要他理解，只需要他不再否定。'},{text:'生气，转身回牌桌证明自己',effects:{mental:-10,skill:4,bankroll:12000,health:-3},feedback:'你赌气连打了一周，赢了 1.2 万。但每次坐下你都想起那句话。你赢了钱，却输给了那句话。'}]},
+  {id:155,title:'bankroll设成家庭信托',text:'40 万 bankroll。律师问：是做成孙辈教育基金，还是留作打高额局的最后弹药？你看着孙子画的画——画里有个笑眯眯的爷爷在打牌。',minAge:54,maxAge:60,weight:8,mode:'once',conditions:{minBankroll:200000},choices:[{text:'20万信托+20万继续打，两头都顾',effects:{bankroll:-200000,mental:15,reputation:5},feedback:'你设了信托。剩下的 20 万你降级到 NL500。你发现：当你不再需要靠扑克吃饭，扑克反而回到了它最初的样子——一个游戏。'},{text:'全部留作弹药，我这把年纪还能再冲一次',effects:{bankroll:30000,mental:-8,skill:3},feedback:'你留着 40 万上了 NL2K。赢了 3 万，但那幅画你始终没敢挂出来——你知道自己在赌的，不只是钱。'}]},
+  {id:156,title:'徒弟第一次赢你',text:'师徒友谊赛 NL1K。徒弟用你教他的 river bluff 把你 1000 块全收了。他愣住了，不知道该高兴还是道歉。你忽然笑出声。',minAge:54,maxAge:60,weight:8,mode:'once',conditions:{requiredFlags:['mentor_master']},choices:[{text:'由衷高兴，青出于蓝',effects:{mental:15,reputation:8,skill:2},feedback:'你站起来和他握手：这一手比我教你的任何东西都好。他知道这一刻——你的传承真正完成了。不是他学会了你的技术，是他超越了你。'},{text:'表面恭喜，心里五味杂陈',effects:{mental:-3,reputation:3,skill:3},feedback:'你笑着说好样的，但回家的路上你一直沉默。被自己徒弟赢的滋味很复杂——骄傲里掺着一丝不甘。'}]},
+  {id:157,title:'被请去当解说嘉宾',text:'直播平台请你解说 10 万买入 High Roller，年薪 8 万，但要你退出现役。"你的脑子比手值钱了，"总监说。',minAge:55,maxAge:60,weight:7,mode:'once',conditions:{minReputation:40,minSkill:50},choices:[{text:'接受，用另一种方式留在牌桌',effects:{bankroll:80000,mental:10,reputation:12},setFlag:'commentator',feedback:'你坐进了解说席。赛后无数新人私信感谢你让他们看懂了扑克。你比任何人都懂这桌上在发生什么。'},{text:'拒绝，我要亲手打完最后几年',effects:{mental:5,skill:4,bankroll:5000},feedback:'你拒绝了。当晚你坐在 NL500 桌上，摸着真实的筹码——你知道解说席更体面，但你的手还想再握几年牌。'}]},
+  {id:158,title:'毕生笔记的归宿',text:'30 年手写笔记，估值 20 万。博物馆想收藏原件，收藏家想买断私藏，开源社区想扫描后免费公开。"这些笔记该属于谁？"',minAge:56,maxAge:60,weight:8,mode:'once',conditions:{minSkill:55},choices:[{text:'扫描开源，让所有人免费学到',effects:{reputation:15,mental:12,bankroll:-20000},feedback:'笔记开源那天下载量破万。一个陌生人写：因为你，我第一次读懂了 river 的逻辑。你觉得这比任何奖金都值。'},{text:'卖给收藏家，留给家人',effects:{bankroll:200000,mental:-5,reputation:-3},feedback:'20 万进了家庭账户。但你偶尔会想起那本笔记——它现在锁在某个保险柜里，再也不会被任何人翻开。'}]},
+  {id:159,title:'告别慈善赛',text:'亲友凑的告别赛，NL500，奖金全捐。最后一手你拿到 KK，对手 all-in。孙子和徒弟都在围观——all-in 演给孙子看，还是 fold 保住体面？',minAge:57,maxAge:60,weight:9,mode:'once',conditions:{},choices:[{text:'all-in！给孙子看一场好戏',effects:{bankroll:-500,mental:20,reputation:10,health:3},feedback:'你 all-in 了。对手亮出 AA。翻牌 K-x-x——你中了 set！孙子跳起来抱住你。这一手不是扑克，是礼物。你职业生涯最好的最后一手。'},{text:'fold，体面地结束',effects:{mental:10,reputation:5,skill:3},feedback:'你 fold 了 KK。全场起立鼓掌。徒弟问你为什么 fold，你说：因为我已经不需要用 KK 证明什么了。他懂了。'}]},
+  {id:160,title:'六十大寿的牌局',text:'徒弟、儿子、老友围坐。桌上一副洗好的牌。孙子在你膝上玩筹码。所有人都在等你——是再坐下去，还是站起来？',minAge:60,maxAge:60,weight:10,mode:'once',conditions:{},choices:[{text:'站起来，把位置让给徒弟',effects:{mental:25,reputation:15,health:5},feedback:'你站起来，拍了拍徒弟的肩：这桌交给你了。阳光照在牌桌上——这才是你赢过的最大的一手牌：知道什么时候离开。'},{text:'再坐一局，最后一局',effects:{mental:8,skill:3,bankroll:2000,health:-2},feedback:'你坐下，发了最后一局。你拿到了 AA，赢了。你笑着笑着，忽然觉得这个结局刚刚好——不是轰轰烈烈的告别，而是一手普通的、赢了的好牌。'}]},
+
+  // ---- 链14/15：家庭链（自由vs归属，最弱母题补强）----
+  {id:161,title:'餐桌上的银行流水',text:'父亲翻到你扑克网站的充值记录，把手机摔在饭桌上。母亲在一旁抹眼泪。整桌菜凉了。',minAge:18,maxAge:23,weight:6,mode:'once',conditions:{maxAge:23},choices:[{text:'把盈利记录摆出来，用数字说话',effects:{mental:-5,bankroll:2000,skill:2},feedback:'你打开 APP 显示累计盈利。父亲看了很久，最后说：数字我不懂。但你多久没回家吃饭了？你哑口无言——你用数据赢了辩论，却输了更重要的东西。'},{text:'道歉，承诺每周回家吃三次饭',effects:{mental:8,reputation:2,bankroll:-1000},feedback:'你低了头。那之后你真的每周回来三次。父亲不再提扑克——直到有天你看到他偷偷搜德州扑克是不是赌博。'}]},
+  {id:162,title:'凌晨四点的多桌',text:'女朋友推门进来，看到你凌晨四点还在 8 桌齐开。"你是在打牌，还是在逃避我？"屏幕的蓝光照着你们俩，谁都没动。',minAge:20,maxAge:28,weight:7,mode:'repeat',conditions:{maxAge:30,maxMental:70},choices:[{text:'关掉电脑，今晚陪她',effects:{mental:8,health:3,bankroll:-2000},feedback:'你关了电脑。你们聊到天亮。你发现她已经两周没跟你说超过十句话了——而你居然没察觉。'},{text:'再打一小时，马上就好',effects:{mental:-8,bankroll:3000,health:-2},feedback:'你说一小时。三小时后天亮了，她已经睡下。你看着赢来的 3000 块，钱在，人却越来越远。'}]},
+  {id:163,title:'同居女友的我们什么时候正常',text:'她想要朝九晚五的稳定伴侣，你每周横跨三个时区打线上。搬家那天她问："我们什么时候能像正常情侣一样，周末一起吃个早午餐？"',minAge:24,maxAge:32,weight:7,mode:'once',conditions:{minBankroll:20000},choices:[{text:'调整作息，每周留两天完全给她',effects:{mental:10,reputation:3,bankroll:-5000},feedback:'你设了无牌日。第三周你开始享受早午餐。她笑着说：你笑起来像个正常人了。你才发现，你差点忘了正常人怎么笑。'},{text:'解释这是职业高峰期，再等两年',effects:{mental:-6,bankroll:8000,skill:2},feedback:'你说了两年。她说你上次也是这么说的。那晚她没接你的电话。你赢了 8000，但她的沉默比任何 bad beat 都重。'}]},
+  {id:164,title:'父亲第一次住院',text:'主赛事 Day4，你筹码排第 12。母亲电话："你爸心梗，进了 ICU。"赛事还剩 3 天，奖金圈近在咫尺。',minAge:30,maxAge:45,weight:5,mode:'once',conditions:{minBankroll:30000},choices:[{text:'立即弃赛，赶去医院',effects:{bankroll:-10000,mental:12,reputation:5,health:-3},feedback:'你弃赛了。父亲醒来第一句话：比赛怎么样了？你鼻子一酸：我赢了更重要的一手。他笑了，握了握你的手。'},{text:'打完这三天，奖金够付医药费',effects:{bankroll:40000,mental:-15,health:-5},feedback:'你打完了，拿了 4 万。赶回医院时父亲已脱离危险。但母亲看你的眼神变了。那 4 万块你一分没敢动——它烫手。'}]},
+  {id:165,title:'怀孕期能否停下巡回',text:'妻子怀孕 7 个月。下个月是 EPT 蒙特卡洛，你已经报名。她说："你不去也行，对吧？"语气是问句，但眼睛在等一个答案。',minAge:30,maxAge:40,weight:6,mode:'once',conditions:{minBankroll:50000},choices:[{text:'退赛，全程陪产',effects:{bankroll:-5000,mental:15,reputation:2},feedback:'你退了赛。孩子出生那天你握着妻子的手，比握任何筹码都紧。你发现自己原来还会为别的事这么紧张。'},{text:'去蒙特卡洛，三天后赶回',effects:{bankroll:20000,mental:-10,reputation:3},feedback:'你去了。赢了 2 万。但决赛那天妻子提前宫缩，你在机场贵宾室接到电话。孩子出生那 6 小时你不在。2 万块，买不回那 6 小时。'}]},
+  {id:166,title:'离婚协议里的bankroll分割',text:'60 万 bankroll 要对半切。你看着那张协议，第一次意识到：bankroll 不只是钱，它也是你婚姻的代价。',minAge:38,maxAge:50,weight:5,mode:'once',conditions:{minBankroll:300000},choices:[{text:'痛快签字，钱可以再赚，体面不能丢',effects:{bankroll:-300000,mental:8,reputation:5},feedback:'你签了。走出民政局你们居然一起去吃了顿饭。她说：早这样就好了。有些体面，是离婚才学会的。'},{text:'死磕到底，请最好的律师',effects:{bankroll:-100000,mental:-15,reputation:-3},feedback:'你打了半年官司，多保住了 20 万。但你的 winrate 在那半年崩了——你每天在打牌和打官司之间撕裂。'}]},
+  {id:167,title:'异国生病无人照顾',text:'布拉格 EPT，你高烧 39 度倒在酒店。房间没人，语言不通。你盯着天花板，第一次认真想：游牧的自由，是不是另一种孤独？',minAge:25,maxAge:40,weight:6,mode:'repeat',conditions:{maxBankroll:100000},choices:[{text:'硬扛过去，这就是自由的代价',effects:{health:-8,mental:-5,bankroll:-2000},feedback:'你扛了三天。你坐在窗边看着布拉格的屋顶，第一次怀疑：一个人自由地走在世界，和一个人孤独地走在世界，区别在哪？'},{text:'订最近一班飞机回家',effects:{bankroll:-5000,health:5,mental:8},feedback:'你飞回家了。母亲开门看到你，什么都没问，给你煮了碗面。你走了那么远，才发现家是你病了时唯一想去的地方。'}]},
+  {id:168,title:'我到底属于哪里',text:'护照盖满了章，酒店成了第二个家。某天你在东京机场转机，突然想不起今天是星期几，也想不起上一次在自己床上醒来是什么时候。',minAge:28,maxAge:42,weight:7,mode:'once',conditions:{minBankroll:80000,minReputation:30},choices:[{text:'订一个根据地，每年固定回去三个月',effects:{mental:12,bankroll:-8000,reputation:3},setFlag:'rooted_nomad',feedback:'你在里斯本租了个小公寓。每年回去三个月。你发现：自由不是没有根，是自己选择在哪里扎根。'},{text:'继续漂泊，停下来我会慌',effects:{mental:-8,bankroll:12000,skill:2},feedback:'你继续走。机场贵宾室的服务员都认识你了——她们叫你那个总是在路上的中国人。你笑着应了，心里却空了一块。'}]},
+  // ===== Phase 2 极端坏事事件（id 169+）：四个属性的低值/极低值危机 =====
+
+  // ---- skill 低值：技术过时 / 被新一代碾压（原仅 id=2 一个低值事件，现补全）----
+  {id:169,title:'听不懂他们在说什么',text:'study group 里年轻人讨论 GTO 频率、node locking、blocker 效应。你听得懂每个词，但连不成句子。三年前你还是他们请教的对象，现在你连插话都找不到缝隙。',minAge:30,maxAge:55,weight:6,mode:'repeat',conditions:{maxSkill:35,minSkill:20},choices:[{text:'放下身段，从基础重新学',effects:{skill:8,mental:-5,bankroll:-3000},feedback:'你买了一套 solver 课程，每天像新手一样记笔记。两周后你第一次跟上了讨论——但那种"我曾经很强"的落差，比任何 downswing 都磨人。'},{text:'承认自己过时了，转打娱乐局',effects:{skill:-3,mental:6,bankroll:2000},feedback:'你退出了 study group，转去打低级别的娱乐局。轻松，但你知道自己在逃避。某天你看到当年的徒弟上了 NL2K，关掉了手机。'}]},
+  {id:170,title:'被19岁的对手当鱼钓',text:'对面那个 19 岁的小孩，用一套你看不懂的 line 把你 3-bet light 了三次。第三次你终于忍不住 4-bet 全压，他秒 call 亮出 AA。你看着他的笑容，意识到：在他眼里，你就是那条鱼。',minAge:35,maxAge:58,weight:5,mode:'repeat',conditions:{maxSkill:40,minSkill:25},choices:[{text:'虚心复盘，向年轻人请教',effects:{skill:7,mental:-8,reputation:3},feedback:'你硬着头皮私信那个小孩，请教他的 range 构造。他回了一大段，最后说"叔你底子还在，就是版本旧了"。你保存了那段话，像保存一剂药。'},{text:'不学了，降级到能赢的级别',effects:{skill:-2,mental:4,bankroll:5000},feedback:'你降到 NL100，那里没有 solver 原住民。你又赢了，但赢得心虚——你知道这不是你变强了，是对手变弱了。'}]},
+
+  // ---- reputation 低值：社死 / 被联盟封杀（原零个低值事件，现补全）----
+  {id:171,title:'论坛上的那个帖子',text:'2+2 上一个帖子盖了 400 楼，标题是"复盘 XXX 的十大离谱操作"。帖子里每一条都是你。置顶评论：这种人怎么还能在牌桌上有位置？',minAge:25,maxAge:50,weight:6,mode:'repeat',conditions:{maxReputation:20},choices:[{text:'发长文回应，逐条反驳',effects:{reputation:5,mental:-8,skill:-2},feedback:'你写了 5000 字。结果是引来更多嘲讽。你学到：在舆论场里，解释等于认罪。声望这东西，碎了就很难拼。'},{text:'沉默，用牌桌结果说话',effects:{reputation:-3,mental:3,bankroll:6000,skill:2},feedback:'你闭嘴了，埋头打牌，赢了 6000。但论坛的帖子还在，每一个新赞助商谈合作前都会搜到它。沉默有时候是最贵的策略。'}]},
+  {id:172,title:'赞助商集体撤退',text:'你打开邮箱：三家赞助商同一天发来解约函。措辞礼貌，理由都是"品牌战略调整"。你知道真正的原因——上周那场直播事故之后，你已经成了品牌的负资产。',minAge:28,maxAge:52,weight:5,mode:'once',conditions:{maxReputation:15,minReputation:1},choices:[{text:'接受现实，重新靠牌技立足',effects:{mental:-5,bankroll:-10000,skill:5},feedback:'解约意味着每月少 1 万收入。你把这股怒气全砸进训练——声望没了，至少技术还在。三个月后你的 winrate 创了新高，但没人知道了。'},{text:'搞一波炒作翻红',effects:{reputation:8,mental:-6,bankroll:3000},feedback:'你搞了个争议性直播，流量回来了，赞助商也回来了一家。但你看着自己的脸出现在那些标题党里，觉得陌生——你翻红的方式，正是当初让你社死的方式。'}]},
+  {id:173,title:'被线下场地集体拒入',text:'你走进常去的俱乐部，前台小姐礼貌地拦住你："抱歉，老板说……您最近不太方便来。"你追问，她支吾。你懂了——你的名字上了某个共享黑名单。',minAge:30,maxAge:55,weight:4,mode:'once',conditions:{maxReputation:10},choices:[{text:'找老板当面谈，问个明白',effects:{reputation:3,mental:-6,bankroll:-2000},feedback:'老板见了你，叹气："不是我的意思，是上面几个老板通气了。你得罪过谁？"你想了一圈，想不出。有些社死，连原因都不给你。'},{text:'不争了，彻底转线上',effects:{reputation:-2,mental:4,skill:3},feedback:'你转身走了，从此只打线上。线下的人脉、信息、软局全断了。你省下了社交成本，但也把自己关进了一个更小的世界。'}]},
+
+  // ---- mental 极低值(≤20)：精神崩溃（原最深只到≤25，且无归零结局）----
+  {id:174,title:'连续72小时没有合眼',text:'不是在打牌，是睡不着。闭上眼就是那手 bad beat，那张河牌，那个对手的笑。你已经三天没洗澡，冰箱里只有半瓶可乐。镜子里的你，你自己都不认识。',minAge:24,maxAge:50,weight:5,mode:'repeat',conditions:{maxMental:20},choices:[{text:'给心理热线打电话',effects:{mental:15,health:5,reputation:-3},feedback:'电话那头的声音很平静。你哭了 20 分钟，挂掉时天已经亮了。你洗了个澡，第一次觉得"活着"比"赢"重要。但圈里有人知道了——你被贴上了"精神不稳定"的标签。'},{text:'再扛扛，我不能垮',effects:{mental:-8,health:-8,skill:-3},feedback:'你又扛了一周。第七天你在牌桌上对着一个 air 牌 all-in 了 5 万，被秒 call。你看着筹码消失，大脑一片空白——这不是 tilt，这是机器故障。'}]},
+  {id:175,title:'在牌桌上大哭',text:'你也不知道为什么。一手普通的 70/30 bad beat 之后，眼泪就下来了。全桌静默。荷官递给你纸巾。你捂着脸，听到有人在低声说"他是不是出什么事了"。',minAge:25,maxAge:55,weight:4,mode:'once',conditions:{maxMental:15},choices:[{text:'离开牌桌，正视自己的崩溃',effects:{mental:12,health:5,bankroll:-5000,setFlag:'breakdown_acknowledged'},feedback:'你站起身走了。那天你没有回酒店，而是一个人在河边坐到天黑。你第一次承认：扑克正在杀死你。这个承认，是你自救的开始。'},{text:'擦干眼泪，继续打',effects:{mental:-10,reputation:-5,skill:2},feedback:'你擦了眼泪说"没事继续"。全桌没人信。你确实打完了那场，但"那个在牌桌上哭的人"成了你的新标签。每一桌你坐下，都有人多看你一眼。'}]},
+  {id:176,title:'医生说你是重度抑郁',text:'心理科诊室。医生看着量表说："你的分数已经到了需要药物干预的程度。"你想起这两年：失眠、暴食、对什么都提不起劲。你以为只是下风期，原来是病。',minAge:26,maxAge:55,weight:6,mode:'once',conditions:{maxMental:18},choices:[{text:'遵医嘱，吃药治疗，暂停打牌',effects:{mental:20,health:8,bankroll:-15000},feedback:'药起效很慢，但第三周你第一次睡了个整觉。你暂停了打牌，bankroll 没涨但也没掉。你发现：活着本身，就是一种 +EV。'},{text:'我不需要药，我只需要赢回来',effects:{mental:-12,health:-6,bankroll:8000},feedback:'你把处方单塞进抽屉，回到牌桌。赢了 8000，但药没吃，病还在。你以为赢能治病——这是抑郁症最擅长的谎言。'}]},
+
+  // ---- health 极低值(≤20)：濒死 / 住院（原最深只到≤60，现补极低值）----
+  {id:177,title:'牌桌上心绞痛',text:'打到第 11 个小时，胸口像被一只手攥住。冷汗、恶心、左臂发麻。你看着手里的 AA，第一次觉得它不重要了。',minAge:38,maxAge:58,weight:5,mode:'once',conditions:{maxHealth:20},choices:[{text:'立刻弃牌，叫救护车',effects:{health:15,mental:8,bankroll:-20000,reputation:3},feedback:'你在医院住了五天。医生说再来晚半小时就是心梗。你看着吊瓶，想起这些年熬过的夜、喝过的红牛、忍过的疼。身体终于跟你摊牌了。'},{text:'忍着打完这手再说',effects:{health:-15,mental:-5,bankroll:5000},feedback:'你 all-in 赢了那手。但站起来时眼前一黑，直接栽在牌桌上。醒来在 ICU，医生说"你差点没命"。那 5000 块，差点是你的丧葬费。'}]},
+  {id:178,title:'医生的最后通牒',text:'复查报告。医生摘下眼镜看着你："你的肝脏指标、血压、颈椎，三样都在报警。我不是吓你——再这样打长时赛，五年内会有不可逆的损伤。这是最后通牒。"',minAge:40,maxAge:58,weight:6,mode:'once',conditions:{maxHealth:15,minHealth:1},choices:[{text:'彻底改变生活方式，降级养生',effects:{health:25,mental:5,bankroll:-30000,skill:-3},feedback:'你戒了红牛，开始健身，每天只打 4 小时。bankroll 增长慢了，但你第一次觉得"还能打 20 年"是可能的。活着，才有复利。'},{text:'医生都爱夸张，我扛得住',effects:{health:-10,mental:-3,bankroll:15000},feedback:'你没听。三个月后你在牌桌上第二次心绞痛，这次没那么幸运——你被抬走时，听到有人在说"他就是上次那个"。'}]},
+
+  // ---- 交叉极低值：bankroll+mental 双低（最危险的组合）----
+  {id:179,title:'天台上的风',text:'bankroll 归零，mental 见底。你站在 28 楼的天台上，风吹着你的衣角。手机响了，是妈妈的电话。你没有接。城市在你脚下亮着，像一张巨大的、你永远读不懂的牌桌。',minAge:22,maxAge:55,weight:2,mode:'once',conditions:{maxBankroll:2000,maxMental:15},choices:[{text:'接妈妈的电话',effects:{mental:25,health:10},feedback:'你接了。妈妈只是问"吃饭了吗"。你哭了，说"妈，我想回家"。她说"回来，饭给你热着"。你转身离开了天台。那一通电话，是你这辈子最好的 all-in。'},{text:'再站一会儿……就一会儿',effects:{mental:-15,health:-10,bankroll:5000},feedback:'你没接。风很大。最后你退了下来——不是因为想通了，是因为没勇气。你回到出租屋，发现妈妈打了 17 个未接来电。你删掉了通话记录，假装什么都没发生。但你心里知道，刚才有多近。'}]},
+  // ===== Phase 3 概率决策事件（5个，id 200-204）EV 数学已验算 =====
+
+  // EV: 底池4000,call2000,需25%胜率,实际60%→call. EV=0.6×6000-0.4×2000=+2800
+  {id:200,title:'河牌的致命call',text:'现金桌，河牌已发。底池4000，对手all-in 2000。你call后总池8000，花2000追6000——盈亏平衡胜率仅需25%。你重新读牌，估计自己手牌胜率约60%。底池赔率给你3:1，你的胜率明显过高。该不该接？',minAge:22,maxAge:55,weight:6,mode:'repeat',conditions:{minBankroll:5000},choices:[{text:'Call 2000，相信读牌',effects:{bankroll:6000,skill:10,mental:6},feedback:'正确决策！EV=0.60×6000−0.40×2000=+2800，远高于fold的0。这次你赢了，收下6000——但要记住：你有40%的概率会输。长期盈利靠的是重复这种+EV的call，而不是回避它。'},{text:'Fold，保住2000更稳',effects:{bankroll:0,skill:-8,mental:-4},feedback:'结果导向陷阱。你只需25%胜率就能盈利，而你估测有60%——每次call期望赚2800。fold看似安全，实则每次放弃+2800 EV。怕波动≠正确决策。'}]},
+
+  // EV: 22 call 50,中set概率12%,需赢回417. 对手深筹码2000,中set平均赢1000→call. EV=0.12×1000-0.88×50=+76
+  {id:201,title:'小对子的set mining',text:'翻牌前你拿到22。前面玩家加注到50，对手后手还有约2000（深筹码）。口袋对子翻牌中set概率约12%（约7.3:1）。隐含赔率要求：你call 50，需在中的时候平均赢回50/0.12≈417才能回本。对手深筹码意味着中set后完全有机会赢远超417。该跟还是该弃？',minAge:22,maxAge:55,weight:6,mode:'repeat',conditions:{minBankroll:5000},choices:[{text:'Call 50，做set mining',effects:{bankroll:950,skill:9,mental:4},feedback:'正确！对手深筹码，中set后可赢1000+，EV=0.12×1000−0.88×50=+76。这次你中了set赢下950。注意：88%的时候你会输掉这50，但只要中的时候赢够417+，长期就是赚的。set mining的核心是"对手够深"。'},{text:'Fold，小对子没前途',effects:{bankroll:0,skill:-7,mental:-2},feedback:'过于保守。你省下了50，却放弃了EV≈+76的隐含赔率机会。对手深筹码时set mining是经典+EV玩法。若对手短筹码（后手不足417），那才该fold。'}]},
+
+  // EV: MTT决赛桌ICM. cEV该call但ICM下fold奖金期望更高. 正确=fold
+  {id:202,title:'决赛桌的ICM抉择',text:'MTT决赛桌，你是筹码第3名。一个短筹码all-in。按纯粹筹码期望值（cEV）算，这手call在筹码上是+EV的。但这是锦标赛：奖金按名次阶梯跳跃，第3名奖金远高于被淘汰后的低名次。一旦call输了，你就从争冠位直接跌出大额奖金区。cEV让你call，ICM让你fold。',minAge:24,maxAge:55,weight:5,mode:'repeat',conditions:{minBankroll:10000},choices:[{text:'Fold，保住第3名奖金',effects:{bankroll:0,skill:12,mental:8},feedback:'顶级ICM决策！虽然这手call在筹码上是+cEV，但锦标赛奖金的阶梯结构让你"被淘汰的代价"远大于"翻倍的收益"。职业玩家在决赛桌会大量放弃+cEV的手牌——生存即奖金。'},{text:'Call，筹码+EV就该接',effects:{bankroll:-8000,skill:-10,mental:-8},feedback:'你call了并且被淘汰，奖金大幅缩水。错在用现金桌的cEV思维打锦标赛决赛桌。ICM告诉我们：当奖金跳跃巨大时，+chip EV的call可能是−$EV的。这是MTT与现金桌最大的区别。'}]},
+
+  // EV: 9 outs同花draw,翻牌到河牌35%. 半池下注需25%胜率. 35%>25%→call. EV=0.35×3000-0.65×1000=+400
+  {id:203,title:'同花draw的追击',text:'翻牌后你已有4张同花（手两张+翻牌两张），还剩turn和河牌。deck里还有9张你的花色（9 outs），从翻牌到河牌成花概率约35%。底池2000，对手下注半池1000，你需call 1000。call后总池4000，盈亏平衡胜率=1000/4000=25%。你的35%胜率高于门槛。',minAge:22,maxAge:55,weight:6,mode:'repeat',conditions:{minBankroll:5000},choices:[{text:'Call 1000追同花',effects:{bankroll:3000,skill:8,mental:5},feedback:'正确！EV=0.35×3000−0.65×1000=+400。这次你河牌成花赢下3000。但要清醒：65%的时候你不会成花而输掉1000——追花的合理性来自"赔率够好"而非"一定会中"。'},{text:'Fold，draw太冒险',effects:{bankroll:0,skill:-7,mental:-3},feedback:'放弃了+400 EV的draw。你只需25%胜率就能盈利，而你有35%——每次追期望赚400。反例：如果只剩一张牌且对手满池下注，9/47≈19%<33%所需，那时才该fold。赔率决定一切。'}]},
+
+  // EV: 每手扣1元,中bad beat概率1/155000,奖金10万. EV=(1/155000)×100000-1≈-0.355/手. 长期负EV→不买
+  {id:204,title:'Bad Beat Jackpot保险',text:'牌室推销"Bad Beat Jackpot"附加险：每手自动扣1元进入奖池，如果你在极罕见的bad beat中招，就能赢100000元。听起来诱人——但bad beat出现概率约1/155000手。你算一下：每手投1元，中奖期望=(1/155000)×100000≈0.645元。你每手净亏约0.355元。该买吗？',minAge:22,maxAge:55,weight:6,mode:'repeat',conditions:{minBankroll:3000},choices:[{text:'不买，这是负EV抽水',effects:{bankroll:0,skill:9,mental:4},feedback:'清醒！每手EV=(1/155000)×100000−1≈−0.355元，长期稳定亏损。打10000手亏3550元——这是disguised成"保险"的抽水。拒绝负EV是职业玩家的基本素养。'},{text:'买，万一中了10万呢',effects:{bankroll:-150,skill:-5,mental:-3},feedback:'你开了附加险，扣了约150元手续费，当然没中——1/155000意味着你要打几十万手才"期望"中一次。"万一中"是典型彩票思维：用确定的小额亏损换极低概率的巨奖。把它当娱乐可以，别当投资。'}]},
+
+  // ===== Phase 3 行业生态事件（18个，id 205-222）真实原型标注 =====
+
+  // 主题1:平台与监管 | 原型:GG/PokerStars KYC、Black Friday、银行反洗钱、平台退出市场
+  {id:205,title:'收入证明',text:'GGPoker安全部门要求你14天内提交近三年合法收入证明，以解释账户内8万资金来源。你被标注为"高风险职业玩家"。打牌这些年你从没报过税，银行流水全是USDT入账，开不出任何凭证。客服暗示：很多人"找朋友的公司帮忙开一张"。',minAge:25,maxAge:50,weight:6,mode:'once',conditions:{minBankroll:50000},choices:[{text:'找朋友公司开虚假收入证明',effects:{bankroll:-2000,mental:-15,reputation:-2},setFlag:'kyc_fraud',feedback:'证明通过审核，资金解冻。但你从此睡不踏实，每次收到平台系统邮件都心惊肉跳——这张证明像悬在头顶的刀。'},{text:'如实说明是扑克收入，接受可能被冻结',effects:{bankroll:-30000,mental:-8,reputation:5},feedback:'平台以"无法核实收入合法性"为由冻结了60%资金。你保住了良心，却损失惨重，接下来几个月只能靠剩余bankroll硬撑。'}]},
+  {id:206,title:'银行问钱从哪来',text:'你从平台提现25000到储蓄卡，第二天银行电话就来了："这笔大额入账无法解释来源，账户已临时冻结60天配合反洗钱调查。"柜员追问"有完税证明吗？有赛事证书吗？"你卡壳了。家人站在旁边，第一次知道你账户里躺着这么多来历不明的钱。',minAge:26,maxAge:48,weight:7,mode:'once',conditions:{minBankroll:25000},choices:[{text:'编"海外电商投资回报"糊弄过去',effects:{bankroll:0,mental:-18,reputation:-3},setFlag:'bank_investigation',feedback:'银行暂未深究，但这笔记录进了反洗钱系统。未来贷款、买房、办信用卡，这张调查记录随时可能被翻出来。家庭关系也紧张了。'},{text:'坦白是扑克收入，补缴个税开完税证明',effects:{bankroll:-5000,mental:-5,reputation:6},feedback:'冻结解除。你花了一笔税款和手续费，换来一张干净的资金证明。从此资金通道正规化，再不用担心被二次冻结。'}]},
+  {id:207,title:'平台连夜撤出',text:'凌晨三点，你所在的线上平台突然发公告：因"合规调整"，即日起退出你所在国家市场，所有账户72小时内停止服务。你的42000 bankroll被标记"待官方提现通道开放后处理"。论坛已经炸锅，有人喊"再不提就变下一个Black Friday"。各种"代提中介"在群里抽25%。',minAge:25,maxAge:50,weight:5,mode:'once',conditions:{minBankroll:30000},choices:[{text:'走官方通道，老老实实排队等',effects:{bankroll:-8000,mental:-12},feedback:'官方拖了8个月才分批放款，中途因汇率波动缩水。这大半年你的资金完全卡死，错过好几个价值百万的卫星赛窗口。'},{text:'找25%抽成的代提中介，赌速度',effects:{bankroll:-12000,mental:-10,reputation:-2},setFlag:'used_proxy',feedback:'中介三天到账，代价是高额抽成和把账户信息交给陌生人。后来听说有人遇到中介跑路血本无归——你只是运气好。'}]},
+
+  // 主题2:灰色地带 | 原型:USDT币商跑路、伙牌团伙、不明资金过账
+  {id:208,title:'币商失联',text:'你通过Telegram群找到的USDT币商"老周"，一直是圈内口碑不错的换汇渠道。这次你打给他等值3万的人民币，准备换U出金打比赛。转账后对方迟迟不放U，半小时后——消息不回了。群里一搜，最近一周已经有六个人被同一个币商坑了。',minAge:27,maxAge:50,weight:6,mode:'repeat',conditions:{minBankroll:20000},choices:[{text:'报警，如实说明是USDT换汇被骗',effects:{bankroll:-30000,mental:-15,reputation:-3},setFlag:'police_record',feedback:'警察受理了，但暗示你"私下换汇本身违规"。更糟的是，你的换汇记录进了系统，后续所有大额资金流动都被盯上。'},{text:'咽下这口气，换更贵但正规的渠道',effects:{bankroll:-33000,mental:-8},feedback:'你咬牙走P2P正规平台，汇率亏了一截，手续费又是一刀。心疼，但至少没把人搭进去。这次教训让你彻底告别了野路子。'}]},
+  {id:209,title:'一起干票大的',text:'一个认识三年的圈内"大哥"私下找到你："我们有个六人组，在25/50的牌桌上配合，互通讯息、联手抽水，每月稳定3万+。你GTO打得不错，正好缺个核心位。"团队里甚至有你崇拜过的pro。"现在线上RTA泛滥，单干早晚被AI吃干。"加入意味着背叛你标榜的"清白玩家"认同。',minAge:28,maxAge:50,weight:6,mode:'once',conditions:{minBankroll:20000},choices:[{text:'拒绝，继续一个人清白地打',effects:{bankroll:0,mental:-10,reputation:8},setFlag:'clean_player',feedback:'"大哥"脸色一沉，从此把你当外人。圈子里开始流传你"不合群""太轴"。你的牌桌依旧干净，但每一手都在跟机器、跟团伙、跟整个时代较劲。'},{text:'加入团伙，抱团吃这波红利',effects:{bankroll:25000,mental:-12,reputation:-8},setFlag:'collusion_member',feedback:'第一个月分到2.5万，你拿钱的手在抖。但从此你头顶悬着封号、黑名单、甚至法律风险。钱变多了，觉却睡不踏实了。'}]},
+  {id:210,title:'帮个忙，过个账',text:'一个跟你打过几次线下的"老朋友"突然开口："兄弟，有笔1.5万急用，先转你账户过一下，半小时就转走，给你500茶水费。具体来源别多问。"你心里咯噔一下——这种"过账"十有八九是来路不明的钱。但人家开口了，你面子上抹不开。',minAge:25,maxAge:50,weight:5,mode:'repeat',conditions:{minBankroll:15000},choices:[{text:'帮这一次，拿了茶水费',effects:{bankroll:500,mental:-10,reputation:-3},setFlag:'money_laundering',feedback:'钱转进转出很快。但第二天你就收到银行短信："您的账户存在异常交易，已被临时限制非柜面业务。"那1.5万的流水像一颗雷，埋进了你的征信记录。'},{text:'坚决拒绝，宁可翻脸',effects:{bankroll:-2000,mental:-5,reputation:5},feedback:'朋友当场黑脸。之后他确实在几个线下局把你排挤了，你损失了一些软场机会。但你的账户干干净净，半夜敲门也不慌。'}]},
+
+  // 主题3:国际偏见 | 原型:WSOP盯梢、2+2"中国bot论"、签证难
+  {id:211,title:'被全程盯着打',text:'WSOP主赛事Day3，你筹码健康。但你注意到，每隔一小时荷官就换新牌，地板经理在你这一桌附近转悠得格外久。邻桌的美国老哥"好心"提醒你："哥们，他们盯你一整天了。上周有个亚洲面孔的伙牌团伙被带走，你们这长相现在都敏感。"那种基于种族的凝视，正在蚕食你的专注力。',minAge:26,maxAge:48,weight:6,mode:'once',conditions:{minBankroll:30000},choices:[{text:'强忍着继续打，用成绩证明自己',effects:{bankroll:0,mental:-15,skill:2},feedback:'你咬牙打完了主赛事，进了钱圈。但精神代价巨大——那种被当成潜在罪犯的屈辱感，让你回国后整整一周不想碰牌。'},{text:'当场礼貌质问地板经理',effects:{bankroll:-8000,mental:-8,reputation:4},feedback:'地板经理尴尬地否认，但接下来你被频繁要求出示ID、被换桌两次。提前出局。不过你的事被推特曝光后，引发了对"种族偏见"的讨论。'}]},
+  {id:212,title:'中国bot论',text:'一个海外扑克论坛的置顶帖标题：《The Chinese Bot Problem: Why NL500+ winrates from CN accounts are statistically impossible》。楼主用数据"论证"，声称像你这样的中国高赢率账号"要么是RTA，要么是伙牌"。帖子盖了几百楼，你的DM里塞满辱骂。可你的每一手牌都是真刀真枪打出来的。',minAge:27,maxAge:48,weight:6,mode:'once',conditions:{minBankroll:25000},choices:[{text:'公开直播打牌+公开手牌数据库自证',effects:{bankroll:-3000,mental:-12,reputation:10,skill:1},feedback:'你开了72小时直播，导出三百万手牌供审计。质疑声小了一半，但另一半说"数据可以造假"。你无法叫醒装睡的人。不过一批理性玩家力挺你，国际声誉反而提升了。'},{text:'沉默是金，屏蔽噪音继续打',effects:{bankroll:0,mental:-18,reputation:-5},feedback:'你没回应，但"中国bot"的标签像烙印贴在你身上。此后申请海外赞助都被婉拒，理由永远是"舆论风险"。沉默保住了精力，却让你越来越边缘化。'}]},
+  {id:213,title:'签证官不信你',text:'为了参加WSOP主赛事，你申请美国签证。面签时签证官皱眉："您职业写的是Professional Poker Player，我们无法核实这种职业的稳定收入。另外，您的银行流水大量标注online gaming。很抱歉，根据214(b)条款，我必须拒绝。"三年的备战计划可能泡汤。',minAge:28,maxAge:45,weight:5,mode:'once',conditions:{minBankroll:40000},choices:[{text:'重新包装职业为"投资顾问"，补资产证明再签',effects:{bankroll:-8000,mental:-10,reputation:-2},setFlag:'visa_repackaged',feedback:'你找会计做了一套"投资顾问"材料。二次面签，签证官将信将疑，最终批了短有效期单次入境签证。你赶上WSOP尾声，但错过主赛事。从今往后你的"职业牌手"身份成了一笔必须粉饰的烂账。'},{text:'放弃赴美，转战澳门/东南亚/欧洲赛事',effects:{bankroll:-15000,mental:-8,skill:1},feedback:'你转向EPT巴塞罗那、WPT澳门。赛事强度不输WSOP，但路费住宿让总开销翻倍。WSOP金手链的荣耀，可能这辈子摸不到了。'}]},
+
+  // 主题4:AI冲击 | 原型:2019 PioSolver、2023 GPT辅助、2025 RTA泛滥
+  {id:214,title:'被一张图打醒',text:'2019年，圈内人人都在谈PioSolver。一个跟你水平相当的朋友掏出电脑，给你看他用solver跑的3-bet pot river决策树："你看，你这几年在这个节点一直bet小额，但GTO应该是73%频率overbet。难怪你长期在这里漏水。"你引以为傲的"读人""经验""手感"，在数学面前原形毕露。',minAge:25,maxAge:45,weight:7,mode:'once',conditions:{minBankroll:20000},choices:[{text:'咬牙买PioSolver+高配电脑，系统重构打法',effects:{bankroll:-2000,mental:-8,skill:6},feedback:'一笔巨款，而且接下来半年你几乎不打牌，全在啃solver。胜率回升是肯定的，但你发现solver时代勤奋成了入场券，天赋不再稀缺。你追上了时代，也被裹挟进军备竞赛。'},{text:'不相信机器，继续靠直觉和经验打',effects:{bankroll:-12000,mental:-6,reputation:-2},setFlag:'solver_resister',feedback:'半年后，你的胜率肉眼可见下滑。曾经的手下败将一个个超越了你。你嘴上还说"扑克是人的游戏"，但深夜复盘时你知道自己正在被淘汰。'}]},
+  {id:215,title:'AI替你打',text:'2023年，某知名线上高额桌常客被扒出用GPT-4接入实时手牌识别，边打边让AI给GTO建议，胜率高得离谱。当晚，一个灰色群发来私信："兄弟，有款新RTA工具，GPT接口，实时给GTO答案，月费500，稳赢。要不要？"群里有你尊敬的人。',minAge:25,maxAge:45,weight:7,mode:'once',conditions:{minBankroll:25000},choices:[{text:'举报这个群，公开呼吁平台治理RTA',effects:{bankroll:-5000,mental:-10,reputation:10},setFlag:'rta_whistleblower',feedback:'你成了"吹哨人"，平台确实封了一批号。但你也上了灰色势力的黑名单。更讽刺的是，你举报后自己线上胜率不升反降——因为比你老实的同行纷纷退场，留下的全是更隐蔽的作弊者。'},{text:'睁一只眼闭一只眼，默默转线下',effects:{bankroll:-8000,mental:-5},feedback:'你没碰那个工具，但也没勇气发声。你把主要精力转向线下赛事。算是独善其身了，可每次看到某个"天才少年"赢率逆天，你都会怀疑：这届扑克，还有干净的吗？'}]},
+  {id:216,title:'线上扑克死了',text:'2025年，事情彻底失控。先是某顶级pro在直播中抓到对手用实时RTA，接着三家主流平台同时爆出检测到数千个AI辅助账户。论坛一片哀嚎："Online poker is dead."你打开自己最常打的5/10牌桌，发现对手的频率精准得不像人类——但你又无法证明。你赖以为生的线上金矿，正在塌方。',minAge:26,maxAge:48,weight:8,mode:'once',conditions:{minBankroll:30000},choices:[{text:'彻底转战线下，bankroll投入赛事差旅',effects:{bankroll:-15000,mental:-10,reputation:3,skill:1},setFlag:'live_only',feedback:'线下赛事干净，但成本高、节奏慢、运气方差大。你的年化收益从稳定盈利变成靠几个大赛爆发的赌博。心理落差巨大，但至少你知道对手是人类。'},{text:'留在线上，降级到低额桌苟着',effects:{bankroll:8000,mental:-15,reputation:-3},feedback:'低额桌还活着，但rake高、对手鱼龙混杂、波动巨大。你从NL1000的精英，沦为NL200的grind boy。收入勉强维持，尊严却每天都在掉。'}]},
+
+  // 主题5:内容与教育 | 原型:B站UP主、培训乱象、师徒反目
+  {id:217,title:'露脸还是不露脸',text:'你在B站做了两年扑克教学视频，一直戴口罩帽子，粉丝涨到8万。最近MCN找上门："露脸出镜，签约费30万。但条件是——你要在视频里拆解自己的真实牌谱和打牌逻辑。"圈内人都知道，一旦露脸+公开打法，等于把你的GTO频率、诈唬模式全摊给对手。',minAge:26,maxAge:45,weight:6,mode:'once',conditions:{minBankroll:25000},choices:[{text:'露脸签约，接住这波流量红利',effects:{bankroll:30000,mental:-5,reputation:10,skill:-3},setFlag:'face_revealed',feedback:'粉丝暴涨，广告接到手软。但对手们把你每期视频当教材研究，实战胜率三个月掉了40%。你成了知名UP主，却从一线牌手沦为二流。'},{text:'坚持不露脸，只做抽象教学',effects:{bankroll:-3000,mental:-3,reputation:4},feedback:'粉丝增长缓慢，MCN转头去捧别人。你看着同期UP主一个个百万粉变现，心里不是滋味。但你的打法依旧是谜，实战依旧犀利。'}]},
+  {id:218,title:'怎么卖你的课',text:'你的教学口碑不错。A路线是做9.9元的入门课疯狂投流，主打"小白变pro""月入过万"，用焦虑收割下沉市场，据说头部靠这条路年入千万；B路线是做5万高端私教，只收3-5个有天赋的学员。A路线来钱快但你知道那是割韭菜；B路线干净但天花板低。',minAge:28,maxAge:48,weight:6,mode:'once',conditions:{minBankroll:30000,minSkill:50},choices:[{text:'走9.9走量路线，用话术收割下沉市场',effects:{bankroll:25000,mental:-12,reputation:-8},setFlag:'edu_scammer',feedback:'钱来得真快。但你心里清楚，你卖的"速成秘籍"对90%的人是毒药。学员群里开始有人晒亏损截图骂你。你的口碑在专业圈崩了。'},{text:'走5万高端私教，只带真正有潜力的学员',effects:{bankroll:8000,mental:-3,reputation:10,skill:2},feedback:'你只招到2个学员，半年辛苦带下来总收入勉强够一次大赛买入。但这两个学员后来都成了圈内高手，逢人就夸"师父是真的强"。'}]},
+  {id:219,title:'白眼狼',text:'那个你手把手带了两年、没收一分钱的学员出师了。他不仅没感恩，反而在自己的新课程里内涵你："我以前的师父打法已经过时了，纯经验派，跟不上solver时代。"更过分的是，他在直播间暗示你"教一半留一半"。你花心血培养的人，转身把你当垫脚石踩。',minAge:30,maxAge:50,weight:5,mode:'once',conditions:{minBankroll:30000,minReputation:30},choices:[{text:'公开对线，把聊天记录教学明细全甩出来',effects:{bankroll:0,mental:-15,reputation:-4},feedback:'你赢了辩论，输了体面。围观群众吃瓜，两边粉丝互撕。对方反而因"黑红"涨了粉。你证明了自己，却发现自己再也不是那个纯粹的玩家了。'},{text:'沉默，让时间和成绩说话',effects:{bankroll:0,mental:-8,reputation:3},feedback:'你忍住了。半年后，对方因涉嫌伙牌被平台封号，人设崩塌。你保住了格局，但那口恶气憋了半年。善良，有时是需要消化成本的。'}]},
+
+  // 主题6:代际更替 | 原型:00后Solver世代 vs 老一代经验派
+  {id:220,title:'被一个19岁的碾压',text:'线下10/25局，你对面坐了个戴耳机、捧着平板的19岁小孩。一开打你脊背发凉——他的3-bet频率、c-bet尺度、river bluff比例，精准得像直接从PioSolver抄下来的。你赖以成名20年的"读人""抓马""反常规"，对他完全无效，因为他没有"个人风格"可以被读——他就是一台执行GTO的肉体机器。',minAge:35,maxAge:50,weight:7,mode:'once',conditions:{minBankroll:35000},choices:[{text:'认清现实，重新系统学习solver',effects:{bankroll:-3000,mental:-12,skill:5},feedback:'你40岁的人重新当回学生。啃solver的日子比想象中痛苦。但半年后你的频率终于不再漏水。代价是承认自己引以为傲的半生经验，在新时代只值一张入门券。'},{text:'降级去鱼多小孩少的老派娱乐场',effects:{bankroll:10000,mental:-5,reputation:-3},setFlag:'downgraded',feedback:'你换到2/5的局，赢是赢了，但赢得不痛快。你心里清楚自己在逃避。那些19岁的怪物，迟早会蔓延到每一个角落。'}]},
+  {id:221,title:'读心术失灵了',text:'你打了25年牌，最得意的是"读人"——一个眼神、一次摸筹码的停顿，就能锁定对手范围。但这两年，你发现这套技术在00后身上彻底失效：他们面无表情、节奏恒定、决策标准化，像一组没有感情的频率。他们不给你任何tell可读。一个老伙计劝你："时代变了，读人这招，在机器面前一文不值。"',minAge:35,maxAge:50,weight:6,mode:'once',conditions:{minBankroll:30000},choices:[{text:'承认读人过时，转向GTO数据流打法',effects:{bankroll:-2000,mental:-15,skill:4},feedback:'你强迫自己不再依赖直觉，用EV表、用solver频率决策。胜率回升了，但你总觉得丢掉了什么——你不再是那个"用灵魂打牌"的艺术家，变成了另一个频率执行者。'},{text:'转战软场，保留读人优势',effects:{bankroll:8000,mental:-6,reputation:-2},feedback:'软场里你的读人依旧神准，赢得很爽。但你也知道，自己在主动避开最强对手，主动把自己边缘化。你的骄傲，正在悄悄变成一种体面的退场。'}]},
+  {id:222,title:'老男孩的酒局',text:'一个周六深夜，你和几个相识二十年的老牌手在澳门某私房菜馆喝酒。有人提起Dwan、Ivey、Negreanu那个黄金年代："那时候扑克是有灵魂的，是男人之间的博弈。"一个老哥猛灌一口："现在呢？一帮戴眼镜的小孩对着屏幕跑solver，把人当频率算。这还叫扑克吗？这叫数学考试！"众人都沉默了。',minAge:38,maxAge:50,weight:6,mode:'once',conditions:{minBankroll:30000},choices:[{text:'接受现实，以"老牌手"身份优雅转型',effects:{bankroll:15000,mental:-5,reputation:8},setFlag:'retired_to_mentor',feedback:'你逐渐淡出一线牌桌，把经验沉淀成内容、人脉沉淀成资源。偶尔打打老朋友局，更多时间做解说、投资年轻选手。你保住了尊严，只是夜深人静时还是会想念那种刀光剑影的纯粹快感。'},{text:'不服老，硬刚，誓要证明老派也能赢',effects:{bankroll:-20000,mental:-10,reputation:4,skill:3},feedback:'你拼了老命学solver、练体能、调作息，重新杀回高额桌。赢过几场漂亮仗，但身体和精力开始报警。你证明了自己，代价是透支了健康和亲情。倔强是老牌手最后的浪漫，也是最贵的奢侈。'}]}
+
+
+
+
+];
+
+
+
+// ============================================================
+const SAVE_KEY='poker_life_sim_save';
+
+const BACKGROUNDS={
+  student:{name:'学生党',stats:{bankroll:8000,skill:15,mental:70,reputation:5,health:80,age:20},desc:'大学生，手头紧但时间多、身体好、心态稳。'},
+  worker:{name:'上班族',stats:{bankroll:20000,skill:10,mental:60,reputation:10,health:60,age:27},desc:'被朝九晚五磨平了棱角，但手上有笔积蓄。'},
+  richkid:{name:'小富二代',stats:{bankroll:80000,skill:5,mental:50,reputation:15,health:70,age:22},desc:'起点比别人高，但所有人都觉得你只是靠家里。'},
+  elite:{name:'海归精英',stats:{bankroll:50000,skill:25,mental:55,reputation:20,health:65,age:25},desc:'国外留学回来，英语好，数学强，但你还没证明自己。'},
+  // Phase 4 新增背景（4→8）
+  veteran:{name:'退伍军人',stats:{bankroll:12000,skill:8,mental:75,reputation:8,health:95,age:26},desc:'五年军旅把纪律刻进骨头。体能与抗压几乎无敌，再惨的bad beat也只是"风沙吹脸"。但读人直觉偏弱、技术成长慢，靠"活得久"而非"赢得快"取胜。'},
+  singlemom:{name:'单亲妈妈',stats:{bankroll:10000,skill:18,mental:85,reputation:6,health:55,age:30},desc:'独自把孩子拉扯大，什么都见过什么都扛过。心智坚如磐石，读对手的谎言就像分辨孩子有没有偷吃糖。但时间和金钱都捉襟见肘，每一场都是"借来的时间"。'},
+  esports:{name:'电竞退役',stats:{bankroll:35000,skill:22,mental:50,reputation:0,health:40,age:24},desc:'十七岁打进世界赛，二十二岁因手腕劳损退役。手速、瞬时反应、压力下决策力完美迁移到读牌搏杀。但十六小时训练把身体练废了，在扑克圈更是查无此人。'},
+  grinder:{name:'小镇做题家',stats:{bankroll:5000,skill:30,mental:45,reputation:3,health:70,age:22},desc:'县中考状元、985精算系，概率论和EV计算像呼吸一样自然。技能全场最高，但一次连败就能击碎那层薄薄的自尊，bankroll只够几手门票——这是和自己的崩盘赛跑。'}
+};
+
+const STAT_LABELS={bankroll:{name:'资金',icon:'💰',suffix:'元'},skill:{name:'技术',icon:'🎯',suffix:''},mental:{name:'心理',icon:'🧠',suffix:''},reputation:{name:'声望',icon:'⭐',suffix:''},health:{name:'体能',icon:'💪',suffix:''},age:{name:'年龄',icon:'📅',suffix:'岁'}};
+const STAT_KEYS=['bankroll','skill','mental','reputation','health','age'];
+const YEAR_EVENTS_PER_YEAR=1;
+
+let state=null;
+let triggeredEventIds=new Set();
+let eventHistory=[];
+let currentEvent=null;
+let showingFeedback=false;
+// repeat 事件年度冷却：同一 repeat 事件在本年内已触发过的 id 集合。
+// 修 bug：原 getAvailableEvents 对 repeat 事件无冷却，极端情况下玩家可能
+// 一年内连续抽到两次"Bad Beat"/"Tilt失控"，叙事跳跃。每年（age 自增后）清空。
+let yearCooldownEvents=new Set();
+// repeat 事件跨年分级冷却：记录每个 repeat 事件"下次可触发的最早年龄"。
+// 修"同样事件频繁重复触发"问题：按事件叙事密度分 3/5/8/12 年冷却。
+// eventCooldownUntil[id] = 下次允许触发的 state.age。
+let eventCooldownUntil={};
+
+function createState(bgKey){
+  const bg=BACKGROUNDS[bgKey];
+  return {
+    bankroll:bg.stats.bankroll,
+    skill:bg.stats.skill,
+    mental:bg.stats.mental,
+    reputation:bg.stats.reputation,
+    health:bg.stats.health,
+    age:bg.stats.age,
+    talentId:null,
+    flags:[],
+    careerEarnings:0,
+    careerLosses:0,
+    biggestWin:0,
+    yearEvents:[],
+    alive:true,
+    ended:false,
+    endingType:null,
+    bgKey:bgKey,
+    lastChoiceType:null,
+    streak:0,
+    aggressiveWins:0,
+    activeState:null,
+    stateTurns:0,
+    lastLuckAge:null   // 锦鲤天赋（id=13）"每10年横财"的上次发放年龄；修 age%10 对齐 bug
+  };
+}
+
+function applyTalent(state,talentId){
+  const t=TALENTS.find(x=>x.id===talentId);
+  if(!t)return;
+  state.talentId=talentId;
+  for(let[k,v] of Object.entries(t.effect)){
+    if(k in state)state[k]+=v;
+  }
+  if(t.id===2)state.mental=Math.max(state.mental,30);
+  if(t.id===9)state.health=Math.max(state.health,20);
+  if(t.id===13)state.lastLuckAge=state.age;  // 锦鲤：锚定起始年龄，每10年后发放
+}
+
+// repeat 事件分级冷却期（年）。按叙事密度分级，防止"同样事件频繁重复触发"。
+//   日常/牌局类(3年)：常规研磨、设备、巨鲸、cooler、NL门槛、夜话等——高频但低戏剧
+//   关系/求助类(5年)：借钱、求助、邮件、学生、打零工、生病等——中频中戏剧
+//   情绪/危机类(8年)：Tilt、Downswing、破产、冷撤退、质疑、债主、复仇等——低频高戏剧
+//   转折/浓烈类(12年)：第一次被Bad Beat(人生第一次，不应频繁复刻)
+// 事件自带 ev.cooldown 字段时优先用，否则按 id 查表，默认 5 年。
+const COOLDOWN_3Y=new Set([65,67,68,109,111,112,130,131,132,133,142,151]);  // 日常/牌局
+const COOLDOWN_5Y=new Set([35,59,66,116,124,129,140,162,167]);              // 关系/求助
+const COOLDOWN_8Y=new Set([4,11,13,21,31,38,53,113,114,115,118,123,125,126,127,128,134,135,169,170,171,174]); // 情绪/危机
+const COOLDOWN_12Y=new Set([4]); // 转折——注意 id=4 在 8Y 和 12Y，下方逻辑取较大值
+function repeatCooldownYears(evId){
+  // 事件自带字段优先
+  const ev=EVENTS.find(e=>e.id===evId);
+  if(ev&&ev.cooldown)return ev.cooldown;
+  let y=5; // 默认
+  if(COOLDOWN_3Y.has(evId))y=3;
+  if(COOLDOWN_5Y.has(evId))y=5;
+  if(COOLDOWN_8Y.has(evId))y=8;
+  if(COOLDOWN_12Y.has(evId))y=Math.max(y,12);
+  return y;
+}
+
+function getAvailableEvents(){
+  const valid=[];
+  for(let ev of EVENTS){
+    if(state.age<ev.minAge||state.age>ev.maxAge)continue;
+    if(ev.mode==='once'&&triggeredEventIds.has(ev.id))continue;
+    // repeat 事件：年度冷却（本年内不重复）+ 跨年分级冷却（防频繁重复）
+    if(ev.mode==='repeat'){
+      if(yearCooldownEvents.has(ev.id))continue;
+      if(eventCooldownUntil[ev.id]!==undefined&&state.age<eventCooldownUntil[ev.id])continue;
+    }
+    const c=ev.conditions||{};
+    if(c.minBankroll!==undefined&&state.bankroll<c.minBankroll)continue;
+    if(c.maxBankroll!==undefined&&state.bankroll>c.maxBankroll)continue;
+    if(c.minSkill!==undefined&&state.skill<c.minSkill)continue;
+    if(c.maxSkill!==undefined&&state.skill>c.maxSkill)continue;
+    if(c.minMental!==undefined&&state.mental<c.minMental)continue;
+    if(c.maxMental!==undefined&&state.mental>c.maxMental)continue;
+    if(c.minReputation!==undefined&&state.reputation<c.minReputation)continue;
+    if(c.maxReputation!==undefined&&state.reputation>c.maxReputation)continue;
+    if(c.minHealth!==undefined&&state.health<c.minHealth)continue;
+    if(c.maxHealth!==undefined&&state.health>c.maxHealth)continue;
+    if(c.requiredTalents&&!c.requiredTalents.includes(state.talentId))continue;
+    if(c.excludedTalents&&c.excludedTalents.includes(state.talentId))continue;
+    if(c.requiredFlags){
+      let ok=true;
+      for(let f of c.requiredFlags){if(!state.flags.includes(f)){ok=false;break}}
+      if(!ok)continue;
+    }
+    if(c.excludedFlags){
+      let blocked=false;
+      for(let f of c.excludedFlags){if(state.flags.includes(f)){blocked=true;break}}
+      if(blocked)continue;
+    }
+    valid.push(ev);
+  }
+  return valid;
+}
+
+function weightedRandom(events){
+  if(events.length===0)return null;
+  let totalW=0;
+  for(let e of events)totalW+=(e.weight||5);
+  let r=Math.random()*totalW;
+  for(let e of events){r-=(e.weight||5);if(r<=0)return e}
+  return events[events.length-1];
+}
+
+function getEnding(){
+  // 硬性归零结局（5 个属性 = 5 种"游戏结束"）。Phase 2 补齐：原仅 bankroll/health
+  // 有归零结局，skill/mental/reputation 归零时静默滑入 normal——玩家看着数值见底却无叙事
+  // 收尾。现补全 4 个属性归零结局，让"触底"有戏剧后果。
+  if(state.bankroll<=0)return {title:'Bust！你破产了',desc:'牌桌上的最后一颗筹码滚到了对手面前。你的职业生涯戛然而止。但扑克的故事从来不只有一个结局——下一次，翻牌总会有新的可能。',type:'bust'};
+  if(state.health<=0)return {title:'英年早逝',desc:'扑克桌上的燃烧太剧烈了。你把一切都押在了牌桌上，包括自己的健康。记住：下一局可以reload，但身体不能。',type:'death'};
+  if(state.mental<=0)return {title:'精神崩溃',desc:'你的大脑在某个凌晨彻底关机了。医生说这是长期高压 + 睡眠剥夺的结果。你不记得最后一场比赛，不记得最后一手牌。扑克给你的，最后全都要了回去——包括你自己。',type:'breakdown'};
+  if(state.reputation<=0)return {title:'身败名裂',desc:'你的名字成了扑克圈的禁忌。论坛删你的帖子，赞助商撤你的广告，老朋友假装不认识你。你还在打牌，但每张桌子都对你关上了门。你赢过很多，但最后输给了所有人的嘴。',type:'disgraced'};
+  if(state.skill<=0)return {title:'被时代淘汰',desc:'有一天你坐到牌桌前，发现自己连鱼都打不过了。新技术、新理论、新的年轻对手——他们说着你的语言，但比你快、比你准、比你狠。你不差，你只是老了。扑克没有淘汰你，是时间淘汰了你。',type:'obsolete'};
+  if(state.flags.includes('gto_god'))return {title:'GTO之神',desc:'你破解了扑克的终极密码。从一个小小的Solver脚本开始，你最终站在了扑克理论的最前沿。GTO Wizard的团队页面里，你的照片挂在最上面。',type:'gto_god'};
+  if(state.flags.includes('disgraced'))return {title:'身败名裂',desc:'直播桌上的每一个动作都被逐帧回放，论坛上几万人讨论你到底是天才还是骗子。无论真相如何，你的名字已经成了扑克圈最敏感的词汇。',type:'disgraced'};
+  if(state.skill>=90&&state.mental<=20)return {title:'燃尽的天才',desc:'你能在任何一张牌桌上打赢任何人，但你赢不了自己。Stu Ungar死的时候身上只有800美元——3次WSOP冠军，$30M奖金，全部化成了烟雾。你是这个时代最耀眼的流星，也是最暗的警示。',type:'burned_genius'};
+  if(state.flags.includes('peaceful_exit')&&state.mental>=80)return {title:'清醒的告别',desc:'你在最好的时候选择了离开。不是被打败，而是找到了比扑克更重要的事。Fedor Holz在32岁、$50M奖金后说了那句话：「扑克只会索取，它非常自私。」他说得对。',type:'peaceful_exit'};
+  if(state.flags.includes('rollercoaster_end'))return {title:'永不休止的过山车',desc:'你的人生是一张永远在震荡的EV曲线。六百万到零，零到一百七十万，一百七十万再到零。像Isildur1一样，你永远不会真正退出。扑克不是你的职业，扑克就是你的呼吸。',type:'rollercoaster'};
+  if(state.flags.includes('entrepreneur_path')&&state.reputation>=55&&state.bankroll>=3000000)return {title:'转型之王',desc:'你发现教人打牌比自己打牌更有成就感。你的学生拿了金手链，比你当年自己拿还开心。Doug Polk和Jonathan Little走通了这条路——现在轮到你了。',type:'entrepreneur'};
+  if(state.bankroll>=15000000&&state.flags.includes('moneymaker_win'))return {title:'凡人封神',desc:'一个普通会计，$86卫星赛，$2.5M冠军。你不仅改变了自己的命运，你还改变了整个扑克行业。2003年WSOP主赛839人参赛，一年后变成了2576人。他们把这叫做「你的名字效应」。',type:'moneymaker'};
+  if(state.bankroll>=100000000)return {title:'牌王降临',desc:'亿万身家、无数冠军、享誉全球。你用一生的时间证明了：扑克不只是一个游戏，它是你成为传奇的舞台。',type:'legend'};
+  if(state.reputation>=70&&state.skill>=70&&state.bankroll>=30000000)return {title:'殿堂级牌手',desc:'扑克名人堂为你敞开了大门。你的名字被刻在了Rio的墙上，和Doyle Brunson、Phil Ivey并肩而立。他们说你改变了中国扑克。',type:'hall_of_fame'};
+  if(state.skill>=80&&state.bankroll>=20000000)return {title:'一代宗师',desc:'你写的扑克书被Galfond和Ivey推荐。你的学生遍布全球。你也许不是最有钱的牌手，但你是最有影响力的那一个。',type:'master'};
+  if(state.bankroll>=5000000&&state.mental>=75)return {title:'稳健之王',desc:'笑到最后的人笑得最好。你没有太多戏剧性的故事，没有破产边缘的挣扎。你只是日复一日地做出正确的决策。这就是最大的传奇。',type:'steady'};
+  // ===== Phase 4 灰度结局：不是大喜大悲，而是"复杂的真实" =====
+  // 有钱但孤独：财富堆成山，身边空无一人
+  if(state.bankroll>=50000000&&state.mental<=30)return {title:'富有的孤岛',desc:'你的账户里有几千万，但通讯录里没有一个能在凌晨三点打电话的人。钱买来了自由，也买来了隔离。你赢了一切，除了一样东西——被人需要的感觉。',type:'rich_lonely'};
+  // 有名但空虚：声望高但内心空
+  if(state.reputation>=80&&state.mental<=35)return {title:'名利的囚徒',desc:'所有人都在谈论你，但没有一个人真正认识你。你的每一条动态都有几万点赞，但你已经很久没有对任何人说过真话。名气是座金笼子——你飞不出去，也不想飞出去。',type:'fame_empty'};
+  // 平庸的幸福：数值都不高，但平衡、知足
+  if(state.bankroll>=500000&&state.bankroll<=3000000&&state.mental>=70&&state.health>=60&&state.age>=45)return {title:'刚刚好的牌生',desc:'你没拿过冠军，没上过头条，也没破产过。你只是日复一日地打牌、回家、吃饭、睡觉。某天你看着账户里那笔不大不小的积蓄，忽然觉得：这不就是我想要的生活吗？不是传奇，但也没有遗憾。',type:'content'};
+  // 中年倦怠但没崩：mental 低但还在挣扎
+  if(state.mental<=40&&state.mental>=20&&state.bankroll>=200000&&state.age>=40)return {title:'疲惫的幸存者',desc:'你没有破产，没有成名，也没有崩溃——你只是累了。每天打开扑克软件都需要十分钟的心理建设。你不知道自己是在坚持还是在习惯。但你还在牌桌上，这本身就是一种胜利，虽然是很疲惫的那种。',type:'weary_survivor'};
+  // 晚景凄凉但尊严在：年老、钱不多、但没丢人
+  if(state.age>=55&&state.bankroll<=100000&&state.bankroll>=10000&&state.mental>=50)return {title:'体面的落幕',desc:'你没有以传奇收场，也没有身败名裂。你只是慢慢变老、慢慢变慢、慢慢退出牌桌。最后一晚你把筹码换成现金，给自己倒了一杯酒。不是庆功，是告别。有些人生不需要掌声，能体面地退场就够了。',type:'graceful_fade'};
+  if(state.age>=60)return {title:'功成身退',desc:'扑克世界记住了你的名字。你挂起了hoodie，合上了电脑。但你讲给下一代的每一个故事里，都有牌桌上的智慧和荣光。',type:'retire'};
+  return {title:'平凡牌手',desc:'你打了一辈子牌，赢过也输过。老婆说你花太多时间在牌桌上，但你知道——那些深夜里的每一个决策，都是你选择的、热爱的、无悔的人生。',type:'normal'};
+}
+
+function clampStats(){
+  state.skill=Math.max(0,Math.min(100,state.skill));
+  state.mental=Math.max(0,Math.min(100,state.mental));
+  state.reputation=Math.max(0,Math.min(100,state.reputation));
+  state.health=Math.max(0,Math.min(100,state.health));
+  if(state.talentId===2)state.mental=Math.max(30,state.mental);
+  if(state.talentId===9)state.health=Math.max(20,state.health);
+}
+
+function applyEffects(effects){
+  const delta={};
+  for(let[k,v] of Object.entries(effects)){
+    if(k in state){
+      const old=state[k];
+      let change=v;
+      if(state.talentId===12){change=Math.round(change*1.5)}
+      if(state.talentId===2&&k==='mental'&&change<0)change=Math.round(change*0.5);
+      state[k]+=change;
+      delta[k]=change;
+      if(k==='bankroll'){
+        if(change>0)state.careerEarnings=(state.careerEarnings||0)+change;
+        else state.careerLosses=(state.careerLosses||0)+Math.abs(change);
+        if(change>0&&change>(state.biggestWin||0))state.biggestWin=change;
+      }
+    }
+  }
+  // 损失厌恶（Phase 3 心理机制）：bankroll 变动 → 非对称 mental 反应。
+  // 真实依据 Tversky & Kahneman (1992) 损失厌恶系数 λ=2.25，价值函数曲率 α=0.88。
+  // 等额亏损的心理痛感是收益快感的 2.25 倍；且边际递减（幂曲线软化巨幅波动）。
+  // 死区 10：微小波动（<1万）不计入心理冲击，避免日常噪音反复拨动 mental。
+  if(delta.bankroll!==undefined&&Math.abs(delta.bankroll)>=10000){
+    const absB=Math.abs(delta.bankroll);
+    const scaled=Math.pow(absB/50000,0.88);  // 5万=1单位心理冲击（校准锚点）
+    if(delta.bankroll>0){
+      state.mental=Math.min(100,state.mental+scaled);            // 收益侧
+    }else{
+      state.mental=Math.max(0,state.mental-scaled*2.25);          // 亏损侧 ×2.25
+    }
+  }
+  clampStats();
+  // 锦鲤天赋：每满 10 年发放一次横财。修 bug：原用 state.age%10===0，
+  // 但年龄从背景初值（20/22/25/27）起跳，%10 只在 20/30/40/50 命中，
+  // 海归(25)/上班族(27) 等背景会少拿 1-2 次。改为按"距上次发放满 10 年"判定。
+  if(state.talentId===13&&state.lastLuckAge!==null&&(state.age-state.lastLuckAge)>=10){
+    state.bankroll+=10000;delta.bankroll=(delta.bankroll||0)+10000;
+    state.lastLuckAge=state.age;
+  }
+  return delta;
+}
+
+function processChoice(choice){
+  // Tilt 状态（Phase 3 强化）：真实研究 tilt 时 winrate 降 50%+。
+  // ① 负面效果 ×1.5（伤害加深）② 正面效果 ×0.5（胜率砍半）③ 该年额外 mental-2（情绪内耗）
+  let effs=Object.assign({},choice.effects||{});
+  if(state.activeState==='tilt'){
+    const adjusted={};
+    for(let[k,v]of Object.entries(effs)){
+      if(v>0)adjusted[k]=Math.round(v*0.5);       // 正面收益减半（winrate -50%）
+      else if(v<0)adjusted[k]=Math.round(v*1.5);   // 负面加深
+      else adjusted[k]=v;
+    }
+    adjusted.mental=(adjusted.mental||0)-2;         // tilt 年额外情绪内耗
+    effs=adjusted;
+  }
+  const delta=applyEffects(effs);
+  if(choice.setFlag&&!state.flags.includes(choice.setFlag))state.flags.push(choice.setFlag);
+  if(choice.removeFlag)state.flags=state.flags.filter(f=>f!==choice.removeFlag);
+  // 状态机更新（连胜/状态触发）
+  const stateToast=updateStreakState(choice);
+  if(state.bankroll<=0||state.health<=0||state.age>=60){
+    const ending=getEnding();
+    state.ended=true;state.endingType=ending.type;
+    state.endingTitle=ending.title;state.endingDesc=ending.desc;
+  }
+  delta.__stateToast=stateToast;
+  delta.__tilted=(state.activeState==='tilt');
+  return delta;
+}
+
+function saveGame(){
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify({state,triggeredEventIds:[...triggeredEventIds],eventCooldownUntil,eventHistory}))}catch(e){}
+}
+function loadGame(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw)return false;
+    const data=JSON.parse(raw);
+    state=data.state;
+    // 存档向后兼容：补齐状态机新字段
+    if(state.lastChoiceType===undefined)state.lastChoiceType=null;
+    if(state.streak===undefined)state.streak=0;
+    if(state.aggressiveWins===undefined)state.aggressiveWins=0;
+    if(state.activeState===undefined)state.activeState=null;
+    if(state.stateTurns===undefined)state.stateTurns=0;
+    if(state.lastLuckAge===undefined)state.lastLuckAge=null;  // 向后兼容：旧存档补锦鲤字段
+    triggeredEventIds=new Set(data.triggeredEventIds||[]);
+    yearCooldownEvents=new Set();   // 加载时重置年度冷却（本年内）
+    eventCooldownUntil=data.eventCooldownUntil||{};  // 加载跨年冷却（向后兼容：旧存档为空）
+    eventHistory=data.eventHistory||[];
+    return true;
+  }catch(e){return false}
+}
+function clearSave(){try{localStorage.removeItem(SAVE_KEY)}catch(e){}}
+
+// ============================================================
+// UI RENDERING
+// ============================================================
+const app=document.getElementById('app');
+
+function render(html){app.innerHTML=html}
+
+function formatMoney(n){
+  if(Math.abs(n)>=10000)return (n/10000).toFixed(1)+'万';
+  return n.toLocaleString();
+}
+
+// 自动推断选项风险等级，显示提示图标（不剧透具体数值）。
+// 复用 choiceType 的阈值，避免两套判定漂移（修 bug：原 riskTag 与 choiceType
+// 各自硬编码同一组阈值，改一处忘改另一处会导致"风险标签"与"状态机判定"不一致）。
+function riskTag(choice){
+  const t=choiceType(choice);
+  if(t==='aggressive')return '<span class="risk-tag risk-high">⚠ 高风险</span>';
+  if(t==='steady')return '<span class="risk-tag risk-safe">✓ 稳健</span>';
+  // neutral 与无 effects 的兜底：有 bankroll/属性波动但未到 aggressive → 抉择
+  const e=choice.effects||{};
+  const hasImpact=(e.bankroll!==undefined&&e.bankroll!==0)||Object.keys(e).length>0;
+  return hasImpact?'<span class="risk-tag risk-mid">♦ 抉择</span>':'';
+}
+
+// ============================================================
+// STATE MACHINE: 状态依赖引擎
+// ============================================================
+// 判定单个选项的类型：aggressive(激进) / steady(稳健) / neutral(中性)
+function choiceType(choice){
+  const e=choice.effects||{};
+  const bnkLoss=e.bankroll!==undefined&&e.bankroll<0?Math.abs(e.bankroll):0;
+  const bnkGain=e.bankroll!==undefined&&e.bankroll>0?e.bankroll:0;
+  const downTotal=Math.abs(Math.min(0,e.health||0))+Math.abs(Math.min(0,e.mental||0))+Math.abs(Math.min(0,e.reputation||0));
+  if(bnkLoss>=30000||bnkGain>=100000||downTotal>=15)return 'aggressive';
+  if(bnkLoss===0&&downTotal<=3)return 'steady';
+  return 'neutral';
+}
+
+// 判定事件整体情绪：positive/negative/mixed（用于 Tilt/Heater 强制抽取）
+function eventMood(ev){
+  // 玩家均匀选择下的事件净期望（bankroll 归一 + 属性加权和）
+  let pos=0,neg=0;
+  ev.choices.forEach(c=>{
+    const e=c.effects||{};
+    let score=(e.bankroll||0)/10000+(e.skill||0)*1.5+(e.mental||0)*1+(e.reputation||0)*1+(e.health||0)*1;
+    if(score>0)pos+=score;else neg+=Math.abs(score);
+  });
+  if(pos>neg*1.4)return 'positive';
+  if(neg>pos*1.4)return 'negative';
+  return 'mixed';
+}
+
+// 更新连胜与状态机（在 processChoice 内调用），返回状态变化文案（无变化返回 null）
+function updateStreakState(choice){
+  const type=choiceType(choice);
+  const e=(choice.effects||{}).bankroll||0;
+  let toast=null;
+
+  // Grinder 状态下选 aggressive → 立即解除（打破惯性，体现「清醒」出口）
+  if(state.activeState==='grinder'&&type==='aggressive'){
+    state.activeState=null;state.stateTurns=0;state.streak=0;
+    toast='你打破了惯性的循环，重新找回锋芒。⚙️→正常';
+  }
+
+  // 连胜计数
+  if(type===state.lastChoiceType&&type!=='neutral'){
+    state.streak++;
+  }else{
+    state.streak=1;
+    state.aggressiveWins=0;
+  }
+  if(type==='aggressive'&&e>0)state.aggressiveWins++;else if(type==='aggressive')state.aggressiveWins=0;
+  state.lastChoiceType=type;
+
+  // 触发新状态（仅在无活跃状态时）
+  if(!state.activeState){
+    if(type==='aggressive'&&state.streak>=2&&state.aggressiveWins>=2){
+      state.activeState='heater';state.stateTurns=1;
+      toast='🔥 你进入火热状态！下个事件会是好事。';
+    }else if(type==='aggressive'&&state.streak>=2){
+      state.activeState='tilt';state.stateTurns=2;
+      toast='😵 你上头了！下个事件会很难，且伤害加深。';
+    }else if(type==='steady'&&state.streak>=3){
+      state.activeState='grinder';state.stateTurns=3;
+      toast='⚙️ 你进入磨王模式：技术稳步提升，但心态在透支。';
+    }
+  }
+  // 燃尽 burnout：长期低心态（<=25）独立触发，不依赖连胜——修 bug：
+  // burnout 此前只在 stateLabel 的 map 里有名字，从未被赋值给 activeState，
+  // 是"幽灵状态"。现补全：心态连续低迷 → 进入燃尽，持续 3 年，每年 mental 再 -2。
+  if(!state.activeState&&state.mental<=25&&state.skill>=45){
+    state.activeState='burnout';state.stateTurns=3;
+    toast='💀 你燃尽了——天赋还在，但心已经空了。';
+  }
+  return toast;
+}
+
+// 应用 Tilt 加深的伤害（仅放大负向变化，不污染原始 effects）
+function applyTiltMultiplier(effects, mult){
+  const out={};
+  for(const[k,v]of Object.entries(effects||{})){
+    if(v<0){out[k]=Math.round(v*mult);}
+    else{out[k]=v;}
+  }
+  return out;
+}
+
+// 状态显示文案
+function stateLabel(){
+  if(!state.activeState)return null;
+  const map={tilt:{icon:'😵',name:'上头',tip:'下个事件负面+伤害加深'},heater:{icon:'🔥',name:'火热',tip:'下个事件会好转'},grinder:{icon:'⚙️',name:'磨王',tip:'技术缓涨·心态缓降'},burnout:{icon:'💀',name:'燃尽',tip:'心态濒临崩溃'}};
+  const m=map[state.activeState];
+  return m?`${m.icon} ${m.name} <span style="color:#5a6a58;font-size:0.85em">(剩${state.stateTurns}年)</span>`:null;
+}
+
+function statBar(key,val,max){
+  const pct=Math.min(100,Math.max(0,(val/max)*100));
+  return `<div class="stat-bar"><div class="stat-bar-fill ${key}" style="width:${pct}%"></div></div>`;
+}
+
+function formatStat(key,val){
+  const s=STAT_LABELS[key];
+  const icon=s.icon||'';
+  const suffix=s.suffix||'';
+  // 非 bankroll 属性显示时取整（损失厌恶的幂曲线计算、health-0.5 衰减等会产生小数）
+  const display=key==='bankroll'?formatMoney(val):(Math.round(val)+suffix);
+  let color='#e8e0d0';
+  if(key==='bankroll')color='#2a8c58';
+  else if(key==='skill')color='#4a8cc0';
+  else if(key==='mental')color='#9a6ac0';
+  else if(key==='reputation')color='#c0a020';
+  else if(key==='health')color='#c04a4a';
+  else if(key==='age')color='#8a8a8a';
+  return `<div class="stat-item"><span class="stat-label">${icon}${s.name}</span><span class="stat-value" style="color:${color}">${display}</span>${statBar(key,val,key==='bankroll'?1000000:100)}</div>`;
+}
+
+function renderStatusBar(){
+  let html='';
+  for(let k of STAT_KEYS){
+    html+=formatStat(k,state[k],k==='bankroll'?1000000:100);
+  }
+  // 状态机指示器
+  const sl=stateLabel();
+  if(sl){
+    const stColor=state.activeState==='heater'?'#2a8c58':state.activeState==='tilt'?'#e08080':state.activeState==='grinder'?'#d4a843':'#c0c0c0';
+    html=`<div style="text-align:center;padding:6px 0;font-weight:bold;color:${stColor};border-bottom:1px solid rgba(255,255,255,0.05)">${sl}</div>`+html;
+  }
+  return `<div class="status-bar">${html}</div>`;
+}
+
+function renderTitle(){
+  const hasSave=!!localStorage.getItem(SAVE_KEY);
+  render(`
+    <div class="title-screen">
+      <div class="suits">♠ ♥ ♦ ♣</div>
+      <h1>德州扑克职业牌手<br>人生模拟器</h1>
+      <div class="subtitle">从Grinder到Legend</div>
+      <br>
+      <button class="btn btn-primary" onclick="startNewGame()">开始新人生</button>
+      ${hasSave?`<button class="btn btn-secondary" onclick="continueGame()" style="margin-top:12px">继续上次人生</button>`:''}
+      <div style="margin-top:32px;color:#3a4a38;font-size:0.75em">
+        130+ 事件 · 18 种天赋 · 多重结局<br>每局都是独一无二的人生
+      </div>
+    </div>
+  `);
+}
+
+// 背景随机分配：越强的出身概率越低（学生党默认60%）
+function rollBackground(){
+  // [key, 权重] —— Phase 4 扩展到 8 背景，新背景权重较低（更稀有）
+  const wheel=[['student',40],['worker',15],['richkid',8],['elite',6],['veteran',8],['singlemom',6],['esports',5],['grinder',4]];
+  const total=wheel.reduce((a,b)=>a+b[1],0);
+  let r=Math.random()*total;
+  for(const [key,w]of wheel){r-=w;if(r<=0)return key;}
+  return 'student';
+}
+
+function startNewGame(){
+  clearSave();
+  // 随机分配背景（不可选）
+  const bgKey=rollBackground();
+  const bg=BACKGROUNDS[bgKey];
+  state=createState(bgKey);
+  triggeredEventIds=new Set();
+  yearCooldownEvents=new Set();  // 新开局：repeat 冷却清空
+  eventCooldownUntil={};          // 新开局：跨年冷却清空
+  eventHistory=[];
+  // 显示「命运的发牌」后自动进入天赋选择
+  render(`
+    <div class="creation-screen">
+      <div class="section-title">🎴 命运为你发了一手起手牌</div>
+      <div style="text-align:center;color:#7a9a80;font-size:0.9em;margin-bottom:16px">你无法选择出身，正如你无法选择发到什么牌。</div>
+      <div class="bg-cards" style="grid-template-columns:1fr;max-width:420px;margin:0 auto">
+        <div class="bg-card selected" style="cursor:default">
+          <div class="bg-name">${bg.name}</div>
+          <div class="bg-desc">${bg.desc}</div>
+          <div class="bg-stats">💰${formatMoney(bg.stats.bankroll)} · 🎯${bg.stats.skill} · 🧠${bg.stats.mental} · ⭐${bg.stats.reputation} · 💪${bg.stats.health} · 📅${bg.stats.age}岁</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:8px">
+        <button class="btn btn-primary" onclick="pickTalent()">接受命运，选择天赋 →</button>
+      </div>
+    </div>
+  `);
+}
+
+function pickTalent(){
+  const pool=[...TALENTS];
+  const selected=[];
+  for(let i=0;i<3;i++){
+    const idx=Math.floor(Math.random()*pool.length);
+    selected.push(pool.splice(idx,1)[0]);
+  }
+  const rarities={common:'普通',rare:'稀有',epic:'史诗',legendary:'传说'};
+  render(`
+    <div class="creation-screen">
+      <div class="section-title">✨ 选择你的天赋</div>
+      <div style="color:#7a9a80;text-align:center;font-size:0.9em;margin-bottom:12px">命运的轮盘只给了你三个选择。选一个，它将陪伴你整个生涯。</div>
+      <div class="talent-pick">
+        ${selected.map(t=>`
+          <div class="talent-card talent-${t.rarity}" onclick="confirmTalent(${t.id})">
+            <div class="talent-name" style="color:${t.color}">[${rarities[t.rarity]}] ${t.name}</div>
+            <div class="talent-desc">${t.desc}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `);
+}
+
+function confirmTalent(talentId){
+  applyTalent(state,talentId);
+  saveGame();
+  renderGame();
+}
+
+function continueGame(){
+  if(!loadGame()){renderTitle();return}
+  if(state.ended){renderEnding();return}
+  renderGame();
+}
+
+function renderGame(){
+  if(!state||state.ended){renderEnding();return}
+  // 状态机：每年消耗状态持续
+  //   Grinder 每年 skill+2 / mental-1；Burnout 每年 mental-2（燃尽期的持续失血）
+  if(state.activeState){
+    if(state.activeState==='grinder'){
+      state.skill=Math.min(100,state.skill+2);
+      state.mental=Math.max(0,state.mental-1);
+    }
+    if(state.activeState==='burnout'){
+      state.mental=Math.max(0,state.mental-2);
+    }
+    if(state.stateTurns>0){
+      state.stateTurns--;
+      if(state.stateTurns<=0){state.activeState=null;state.streak=0;}
+    }
+    clampStats();
+  }
+  // 久坐健康债（Phase 3 心理/生理机制）：年龄越大 health 衰退越快。
+  // 真实依据 Harvard/ACC 2024：日均久坐>10.6h 心衰风险+60%，且损害部分不可逆。
+  // ageFactor: 20岁=1.0, 35岁=1.5, 50岁=2.0, 60岁=2.33。每年 health 额外衰减。
+  // 这与 continueAfterFeedback 里的固定 health-0.5 叠加，暮年总衰减可达 2-3/年。
+  const ageFactor=1+(state.age-20)/30;
+  if(ageFactor>1){
+    state.health=Math.max(0,state.health-(ageFactor-1)*0.8);
+    clampStats();
+  }
+  let html=renderStatusBar();
+  const talent=TALENTS.find(t=>t.id===state.talentId);
+  const talentHTML=state.talentId!==null&&talent?'<span class="sep">·</span>天赋：<span style="color:'+(talent.color||'#d4a843')+'">'+talent.name+'</span>':'';
+  html+=`<div class="age-indicator">📅 ${state.age} 岁 ${talentHTML}</div>`;
+  
+  if(state.age%5===0&&eventHistory.length>0){
+    const recent=eventHistory.slice(-5);
+    html+=`<div class="year-review">📋 五年回顾：${recent.map(e=>e.title).join(' → ')}</div>`;
+  }
+
+  const available=getAvailableEvents();
+  if(available.length===0){
+    state.age++;
+    yearCooldownEvents=new Set();  // 新的一年：repeat 年度冷却重置
+    state.health-=1;
+    state.mental-=1;
+    // 状态机：空转年也消耗状态持续
+    if(state.activeState&&state.stateTurns>0){state.stateTurns--;if(state.stateTurns<=0)state.activeState=null;}
+    clampStats();
+    saveGame();
+    if(state.health<=0||state.age>=60){
+      const ending=getEnding();
+      state.ended=true;state.endingType=ending.type;
+      state.endingTitle=ending.title;state.endingDesc=ending.desc;
+      saveGame();
+      renderEnding();return;
+    }
+    html+=`<div class="event-card"><div class="event-title">平淡的一年</div><div class="event-text">这一年没什么大事发生。你照常打牌、吃饭、睡觉。但日复一日的重复让你心里有点空。时间在流逝。</div><div class="feedback-toast" style="color:#c04a4a">健康 -1 · 心态 -1</div></div>`;
+    render(`<div class="game-screen">${html}</div>`);
+    setTimeout(()=>renderGame(),900);
+    return;
+  }
+
+  // 状态机扭曲事件抽取：Tilt 强制负面，Heater 强制正面；为空则退化
+  let pool=available;
+  let stateNote='';
+  if(state.activeState==='tilt'){
+    const neg=available.filter(ev=>eventMood(ev)==='negative');
+    if(neg.length>0){pool=neg;stateNote='😵 上头中——这注定是个难熬的时刻…';}
+  }else if(state.activeState==='heater'){
+    const pos=available.filter(ev=>eventMood(ev)==='positive');
+    if(pos.length>0){pool=pos;stateNote='🔥 火热中——好运在向你招手！';}
+  }
+
+  const ev=weightedRandom(pool);
+  currentEvent=ev;
+  triggeredEventIds.add(ev.id);
+  if(ev.mode==='repeat'){
+    yearCooldownEvents.add(ev.id);  // 本年内不再重复
+    // 跨年分级冷却：设置下次可触发的最早年龄
+    eventCooldownUntil[ev.id]=state.age+repeatCooldownYears(ev.id);
+  }
+  eventHistory.push({id:ev.id,title:ev.title,age:state.age});
+
+  let eventHTML='';
+  if(stateNote){
+    const nc=state.activeState==='tilt'?'#e08080':'#6ad090';
+    eventHTML+=`<div style="text-align:center;padding:6px;margin-bottom:10px;border-radius:6px;background:rgba(${state.activeState==='tilt'?'192,74,74':'42,140,88'},0.12);color:${nc};font-size:0.85em;font-style:italic">${stateNote}</div>`;
+  }
+  eventHTML+=`<div class="event-card">`;
+  eventHTML+=`<div class="event-title">${ev.title}</div>`;
+  eventHTML+=`<div class="event-text">${ev.text}</div>`;
+  eventHTML+=`<div class="event-choices">`;
+  ev.choices.forEach((c,i)=>{
+    eventHTML+=`<button class="choice-btn" onclick="makeChoice(${i})">${c.text} ${riskTag(c)}</button>`;
+  });
+  eventHTML+=`</div></div>`;
+
+  html+=eventHTML;
+  render(`<div class="game-screen">${html}</div>`);
+}
+
+function makeChoice(choiceIdx){
+  if(showingFeedback)return;
+  if(!currentEvent)return;
+  const choice=currentEvent.choices[choiceIdx];
+  if(!choice)return;
+  showingFeedback=true;
+
+  const delta=processChoice(choice);
+  saveGame();
+
+  // Render feedback
+  let feedbackHTML=renderStatusBar();
+  feedbackHTML+=`<div class="age-indicator">📅 ${state.age} 岁</div>`;
+  feedbackHTML+=`<div class="feedback-toast">${choice.feedback}</div>`;
+  if(delta.__stateToast){
+    const stColor=state.activeState==='heater'?'#2a8c58':state.activeState==='tilt'?'#c04a4a':'#d4a843';
+    feedbackHTML+=`<div class="feedback-toast" style="color:${stColor};font-weight:bold">${delta.__stateToast}</div>`;
+  }
+  feedbackHTML+=`<div style="text-align:center;color:#5a7a60;font-size:0.85em">点击继续 →</div>`;
+  render(`<div class="game-screen" onclick="continueAfterFeedback()">${feedbackHTML}</div>`);
+
+  // Floating effect（Tilt 加深时显示放大后的数值）
+  const tilted=!!delta.__tilted;
+  let effects=choice.effects||{};
+  if(tilted)effects=applyTiltMultiplier(effects,1.5);
+  const changes=[];
+  for(let[k,v]of Object.entries(effects)){
+    if(v===0)continue;
+    const s=STAT_LABELS[k];
+    const prefix=v>0?'+':'';
+    const color=v>0?'#2a8c58':'#c04a4a';
+    const tiltTag=(tilted&&v<0)?' <span style="color:#e08080;font-size:0.7em">×1.5</span>':'';
+    changes.push(`<span style="color:${color}">${prefix}${k==='bankroll'?formatMoney(v):v}${s.suffix||''} ${s.icon}</span>${tiltTag}`);
+  }
+  if(changes.length>0){
+    const float=document.createElement('div');
+    float.className='floating-effect';
+    float.innerHTML=changes.join(' ');
+    float.style.left=(window.innerWidth/2-140)+'px';
+    float.style.top=(window.innerHeight/2-30)+'px';
+    float.style.color='#d4a843';
+    document.body.appendChild(float);
+    setTimeout(()=>float.remove(),1700);
+  }
+
+  // Highlight changed stat values in the status bar
+  const deltaKeys=Object.keys(delta).filter(k=>delta[k]!==0);
+  setTimeout(()=>{
+    deltaKeys.forEach(k=>{
+      const items=document.querySelectorAll('.game-screen .stat-item');
+      items.forEach(item=>{
+        if(item.querySelector('.stat-label')&&item.querySelector('.stat-label').textContent.includes(STAT_LABELS[k].name)){
+          const v=item.querySelector('.stat-value');
+          if(v){v.classList.remove('changed');void v.offsetWidth;v.classList.add('changed');}
+        }
+      });
+    });
+  },30);
+
+  currentEvent=null;
+}
+
+function continueAfterFeedback(){
+  showingFeedback=false;
+  state.age++;
+  yearCooldownEvents=new Set();  // 新的一年：repeat 年度冷却重置
+  // 修 bug：正常打牌的一年只扣 health 不扣 mental，与"打牌磨损心态"的叙事
+  // 和 grinder/burnout 状态文案自相矛盾。补上 mental 的轻微自然消耗（-1），
+  // 让心态真实下滑、burnout 触发链可达。空转年仍维持 health-1/mental-1。
+  state.health=Math.max(0,state.health-0.5);
+  state.mental=Math.max(0,state.mental-1);
+  clampStats();
+  saveGame();
+  if(state.ended){
+    renderEnding();return;
+  }
+  if(state.health<=0||state.age>=60){
+    const ending=getEnding();
+    state.ended=true;state.endingType=ending.type;
+    state.endingTitle=ending.title;state.endingDesc=ending.desc;
+    saveGame();
+    renderEnding();return;
+  }
+  renderGame();
+}
+
+// 结局评级系统（Phase 4）：每个结局给出三维评分——生涯分/人生满意度/传承度。
+// 设计哲学：金钱≠幸福。一个破产的人可能满意度高于亿万富翁（如果他心态好、关系在）。
+function rateEnding(ending){
+  // 生涯分（0-100）：综合成就。bankroll 权重高，但 skill/reputation/age 也算。
+  const bankrollScore=Math.min(50,Math.log10(Math.max(1,state.bankroll))/Math.log10(1e8)*50);
+  const careerScore=Math.round(bankrollScore+state.skill*0.25+state.reputation*0.25);
+  // 人生满意度（0-100）：≠金钱。mental 主导，health 次之，关系（reputation）再次。
+  // 一个 mental 高的破产者可以比 mental 崩的富翁更满意。
+  const lifeScore=Math.round(state.mental*0.5+state.health*0.3+state.reputation*0.2);
+  // 传承度（0-100）：你对这个行业/后人留下了什么。声誉+技术+是否带过徒弟。
+  const legacyScore=Math.round(state.reputation*0.4+state.skill*0.3+(state.flags.includes('mentor_master')?30:0));
+  // 结局桶标签
+  const buckets={legendary:['gto_god','moneymaker','legend','hall_of_fame'],success:['master','steady','entrepreneur','peaceful_exit','content'],ordinary:['normal','retire','graceful_fade'],tragic:['bust','death','disgraced','burned_genius','breakdown','obsolete'],special:['rollercoaster','rich_lonely','fame_empty','weary_survivor']};
+  let bucket='ordinary';
+  for(const[k,arr]of Object.entries(buckets))if(arr.includes(ending.type))bucket=k;
+  return {careerScore:Math.min(100,careerScore),lifeScore:Math.min(100,lifeScore),legacyScore:Math.min(100,legacyScore),bucket};
+}
+
+function renderEnding(){
+  clearSave();
+  const ending=getEnding();
+  const t=TALENTS.find(t=>t.id===state.talentId);
+  let html=`<div class="ending-screen">`;
+  html+=`<div class="suits" style="font-size:1.5em;opacity:0.4">♠ ♥ ♦ ♣</div>`;
+  html+=`<div class="ending-title">${ending.title}</div>`;
+  html+=`<div class="ending-desc">${ending.desc}</div>`;
+  html+=`<div class="ending-stats">`;
+  html+=`<div class="row"><span class="label">💰 生涯总盈利</span><span class="val" style="color:#2a8c58">${formatMoney(state.careerEarnings||0)}</span></div>`;
+  html+=`<div class="row"><span class="label">💸 生涯总亏损</span><span class="val" style="color:#c04a4a">${formatMoney(state.careerLosses||0)}</span></div>`;
+  html+=`<div class="row"><span class="label">🏆 最高单次收入</span><span class="val" style="color:#d4a843">${formatMoney(state.biggestWin||0)}</span></div>`;
+  html+=`<div class="row"><span class="label">🎯 最终技术</span><span class="val">${Math.round(state.skill)}</span></div>`;
+  html+=`<div class="row"><span class="label">🧠 最终心理</span><span class="val">${Math.round(state.mental)}</span></div>`;
+  html+=`<div class="row"><span class="label">⭐ 最终声望</span><span class="val">${Math.round(state.reputation)}</span></div>`;
+  html+=`<div class="row"><span class="label">📅 享年</span><span class="val">${Math.round(state.age)}岁</span></div>`;
+  html+=`<div class="row"><span class="label">🎴 天赋</span><span class="val" style="color:${t?.color||'#d4a843'}">${t?.name||'无'}</span></div>`;
+  html+=`</div>`;
+
+  // 结局评级（Phase 4）：生涯分/人生满意度/传承度
+  const rating=rateEnding(ending);
+  const bucketLabels={legendary:'🏆 传奇',success:'✨ 成功',ordinary:'🍃 平凡',tragic:'💔 悲剧',special:'🌀 特殊'};
+  html+=`<div class="ending-stats" style="margin-top:8px;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px">`;
+  html+=`<div class="row"><span class="label">🏷️ 结局评级</span><span class="val">${bucketLabels[rating.bucket]||'🍃 平凡'}</span></div>`;
+  html+=`<div class="row"><span class="label">📊 生涯评分</span><span class="val" style="color:#d4a843">${rating.careerScore}/100</span></div>`;
+  html+=`<div class="row"><span class="label">😊 人生满意度</span><span class="val" style="color:#2a8c58">${rating.lifeScore}/100</span></div>`;
+  html+=`<div class="row"><span class="label">🌱 传承度</span><span class="val" style="color:#9a6ac0">${rating.legacyScore}/100</span></div>`;
+  html+=`</div>`;
+
+  // Radar chart
+  html+=`<div class="radar-chart"><canvas id="radarCanvas" width="160" height="160"></canvas></div>`;
+
+  html+=`<button class="btn btn-primary" onclick="startNewGame()" style="margin-top:8px">再来一局 ♠</button>`;
+  html+=`<button class="btn btn-ghost" onclick="shareResult()" style="margin-top:6px">📋 复制战绩</button>`;
+  html+=`</div>`;
+  render(html);
+
+  // Draw radar
+  setTimeout(()=>{
+    const canvas=document.getElementById('radarCanvas');
+    if(!canvas)return;
+    const ctx=canvas.getContext('2d');
+    const cx=80,cy=80,r=65;
+    const stats=[{v:state.skill,c:'#4a8cc0'},{v:state.mental,c:'#9a6ac0'},{v:state.reputation,c:'#c0a020'},{v:state.health,c:'#c04a4a'},{v:Math.min(100,(state.bankroll/1000000)*100),c:'#2a8c58'}];
+    const labels=['技术','心理','声望','体能','资金'];
+    const angles=stats.map((_,i)=>(i*2*Math.PI/stats.length)-Math.PI/2);
+    ctx.strokeStyle='#2a3a30';ctx.lineWidth=1;
+    for(let lvl=0.2;lvl<=1;lvl+=0.2){
+      ctx.beginPath();
+      for(let i=0;i<angles.length;i++){
+        const x=cx+Math.cos(angles[i])*r*lvl,y=cy+Math.sin(angles[i])*r*lvl;
+        i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.closePath();ctx.stroke();
+    }
+    for(let i=0;i<angles.length;i++){
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(angles[i])*r,cy+Math.sin(angles[i])*r);
+      ctx.strokeStyle='#2a3a30';ctx.stroke();
+      ctx.fillStyle='#7a9a80';ctx.font='10px "PingFang SC","Microsoft YaHei",sans-serif';ctx.textAlign='center';
+      ctx.fillText(labels[i],cx+Math.cos(angles[i])*(r+16),cy+Math.sin(angles[i])*(r+16)+4);
+    }
+    ctx.beginPath();
+    for(let i=0;i<stats.length;i++){
+      const v=stats[i].v/100;
+      const x=cx+Math.cos(angles[i])*r*v,y=cy+Math.sin(angles[i])*r*v;
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    ctx.fillStyle='rgba(212,168,67,0.2)';ctx.fill();
+    ctx.strokeStyle='#d4a843';ctx.lineWidth=1.5;ctx.stroke();
+    for(let i=0;i<stats.length;i++){
+      const v=stats[i].v/100;
+      const x=cx+Math.cos(angles[i])*r*v,y=cy+Math.sin(angles[i])*r*v;
+      ctx.fillStyle=stats[i].c;ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();
+    }
+  },100);
+}
+
+function shareResult(){
+  const ending=getEnding();
+  const text=`🃏 德州扑克职业牌手人生模拟器\n━━━━━━━━━━\n结局：${ending.title}\n享年：${state.age}岁\n最终资金：${formatMoney(state.bankroll)}\n技术：${state.skill} | 心理：${state.mental}\n声望：${state.reputation} | 体能：${state.health}\n最高单次收入：${formatMoney(state.biggestWin||0)}\n━━━━━━━━━━\n再来一局？`;
+  navigator.clipboard.writeText(text).then(()=>{
+    const toast=document.createElement('div');
+    toast.style.cssText='position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1a5c38;color:#f0e8c0;padding:12px 24px;border-radius:8px;z-index:200;font-size:0.95em;animation:fadeInOut 2s ease';
+    toast.textContent='✅ 战绩已复制到剪贴板！';
+    document.body.appendChild(toast);
+    setTimeout(()=>toast.remove(),2200);
+  });
+}
+
+// ============================================================
+// INIT
+// ============================================================
+renderTitle();
+</script>
+</body>
+</html>

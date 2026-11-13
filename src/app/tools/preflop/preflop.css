@@ -1,0 +1,770 @@
+/* ==============================================
+   翻前范围表 — 求解树浏览器
+   哑光深色 + 发丝金线，动作配色沿用全站范围页
+   （加注=绿 · 跟注=金 · All-in=蓝 · 弃牌=哑红）
+   布局：范围矩阵（左）｜牌桌 + 行动按钮 + 频率（右）
+   ============================================== */
+
+/* ---- 顶部控制条 ---- */
+/* 本页标题与控制条的间距 = 控制条与面板的间距（1.25rem），仅作用于本页 */
+.pf-section .tool-head {
+  margin-bottom: 1.25rem;
+}
+/* 本页最暗文字不低于频率条动作名（#d4d4d8），品牌灰阶只保留两档 */
+.pf-section .tool-head-back {
+  color: #d4d4d8;
+}
+.pf-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.9rem 1.25rem;
+  padding: 0.95rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.pf-solutions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.pf-sol-chip {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: #d4d4d8;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-family: inherit;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+  white-space: nowrap;
+}
+.pf-sol-chip:hover {
+  color: #f4f4f5;
+  border-color: rgba(168, 139, 70, 0.4);
+}
+.pf-sol-chip.is-active {
+  background: rgba(168, 139, 70, 0.16);
+  border-color: rgba(196, 164, 85, 0.55);
+  color: #c4a455;
+}
+.pf-loading-note {
+  font-size: 0.72rem;
+  color: #d4d4d8;
+}
+.pf-sol-meta {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: #d4d4d8;
+  white-space: nowrap;
+}
+.pf-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.pf-views {
+  display: inline-flex;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.55rem;
+  overflow: hidden;
+  background: rgba(10, 10, 10, 0.5);
+}
+.pf-crumb-btn:disabled {
+  cursor: default;
+  opacity: 0.75;
+}
+.pf-crumb-btn:disabled:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #d4d4d8;
+}
+.pf-view-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #d4d4d8;
+  font-size: 0.78rem;
+  font-family: inherit;
+  padding: 0.42rem 0.85rem;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+  white-space: nowrap;
+}
+.pf-view-btn:hover {
+  color: #f4f4f5;
+}
+.pf-view-btn.is-active {
+  background: rgba(168, 139, 70, 0.16);
+  color: #c4a455;
+}
+.pf-view-btn + .pf-view-btn {
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+}
+.pf-head-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Round 取整档位按钮（范围面板右上角） */
+.pf-round-btn {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.035);
+  color: #d4d4d8;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  padding: 0.14rem 0.6rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+/* 复制范围（范围面板左上）：按钮 + fixed 下拉（面板 overflow:hidden 会裁 absolute 子元素） */
+.pf-copy-btn {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.035);
+  color: #d4d4d8;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  padding: 0.14rem 0.6rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.pf-copy-btn:hover:not(:disabled),
+.pf-copy-btn.is-open {
+  color: #f4f4f5;
+  border-color: rgba(196, 164, 85, 0.5);
+}
+.pf-copy-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.pf-copy-btn.is-note {
+  color: #c4a455;
+  border-color: rgba(196, 164, 85, 0.55);
+  background: rgba(168, 139, 70, 0.12);
+}
+.pf-copy-caret {
+  font-size: 0.56rem;
+  opacity: 0.7;
+}
+.pf-copy-menu {
+  position: fixed;
+  z-index: 60;
+  min-width: 12.5rem;
+  background: rgba(24, 24, 27, 0.97);
+  border: 1px solid rgba(196, 164, 85, 0.28);
+  border-radius: 0.55rem;
+  padding: 0.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+.pf-copy-item {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: #d4d4d8;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.34rem 0.5rem;
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
+.pf-copy-item:hover {
+  background: rgba(168, 139, 70, 0.14);
+  color: #f4f4f5;
+}
+.pf-copy-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  flex: none;
+}
+.pf-copy-name {
+  flex: 1;
+}
+.pf-copy-pct {
+  opacity: 0.75;
+}
+.pf-round-btn:hover {
+  color: #f4f4f5;
+  border-color: rgba(196, 164, 85, 0.5);
+}
+.pf-round-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.pf-round-btn.is-on {
+  color: #c4a455;
+  border-color: rgba(196, 164, 85, 0.55);
+  background: rgba(168, 139, 70, 0.12);
+}
+
+/* ---- 加载 / 错误 ---- */
+.pf-state {
+  padding: 3.5rem 1.5rem;
+  text-align: center;
+  color: #d4d4d8;
+  font-size: 0.85rem;
+}
+.pf-retry {
+  display: inline-block;
+  margin-left: 0.6rem;
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: transparent;
+  color: #d4d4d8;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.75rem;
+  cursor: pointer;
+}
+.pf-retry:hover {
+  color: #f4f4f5;
+  border-color: rgba(196, 164, 85, 0.5);
+}
+.pf-state-error {
+  color: #f87171;
+}
+
+/* ---- 两栏布局：范围（左）｜牌桌（右） ---- */
+.pf-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+@media (min-width: 1100px) {
+  .pf-layout {
+    grid-template-columns: minmax(0, 1fr) 27rem;
+  }
+}
+
+.pf-panel {
+  background: rgba(24, 24, 27, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+.pf-panel:hover {
+  border-color: rgba(168, 139, 70, 0.25);
+}
+.pf-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0.95rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: #d4d4d8;
+}
+.pf-panel-head-note {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: #d4d4d8;
+  letter-spacing: 0;
+  text-align: right;
+}
+.pf-panel-head-note.is-gold {
+  color: #c4a455;
+}
+
+/* ---- 面包屑（牌桌面板内） ---- */
+.pf-crumb {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  padding: 0.6rem 0.95rem 0.5rem;
+}
+.pf-crumb-btn {
+  appearance: none;
+  border: 0;
+  background: rgba(255, 255, 255, 0.05);
+  color: #d4d4d8;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  padding: 0.12rem 0.42rem;
+  border-radius: 0.3rem;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pf-crumb-btn:hover {
+  color: #f4f4f5;
+  background: rgba(255, 255, 255, 0.1);
+}
+.pf-crumb-btn.is-current {
+  background: rgba(168, 139, 70, 0.18);
+  color: #e7d5a4;
+}
+
+/* ---- 行动按钮：并列所有子分支，不带频率 ---- */
+.pf-navbtns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding: 0.45rem 0.95rem 0.75rem;
+}
+.pf-navbtn {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.035);
+  color: #d4d4d8;
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+  padding: 0.42rem 0.95rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+.pf-navbtn:hover {
+  color: #f4f4f5;
+  border-color: rgba(196, 164, 85, 0.6);
+  background: rgba(168, 139, 70, 0.1);
+}
+.pf-navbtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+.pf-navbtn:disabled:hover {
+  color: #d4d4d8;
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.035);
+}
+.pf-navbtn-home {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.42rem 0.55rem;
+}
+.pf-navbtns-empty {
+  font-size: 0.75rem;
+  color: #d4d4d8;
+  padding: 0.2rem 0;
+}
+.pf-navzone {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ---- 牌桌 ---- */
+.pf-tablewrap {
+  position: relative;
+  height: 240px;
+  margin: 0.85rem 0.6rem 0;
+}
+.pf-felt {
+  position: absolute;
+  inset: 28px 22px;
+  border-radius: 50% / 42%;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(196, 164, 85, 0.05), transparent 62%),
+    #121212;
+  border: 1px solid rgba(196, 164, 85, 0.22);
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.75);
+}
+.pf-pot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+.pf-pot-v {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  color: #f4f4f5;
+}
+.pf-pot-k {
+  font-size: 0.55rem;
+  letter-spacing: 0.22em;
+  color: #d4d4d8;
+  margin-top: 0.1rem;
+}
+.pf-seat {
+  position: absolute;
+  width: 5.5rem;
+  padding: 0.28rem 0.3rem;
+  border-radius: 0.5rem;
+  background: rgba(24, 24, 27, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+  transform: translate(-50%, -50%);
+  transition: border-color 0.2s, box-shadow 0.2s, opacity 0.2s;
+}
+.pf-seat {
+  cursor: pointer;
+}
+.pf-seat:hover {
+  border-color: rgba(196, 164, 85, 0.5);
+}
+.pf-seat:focus-visible {
+  outline: 2px solid #c4a455;
+  outline-offset: 2px;
+}
+.pf-seat.is-acting {
+  border-color: rgba(196, 164, 85, 0.75);
+  box-shadow: 0 0 0 1px rgba(196, 164, 85, 0.35), 0 0 14px rgba(196, 164, 85, 0.18);
+}
+.pf-seat.is-fold {
+  opacity: 0.28;
+}
+.pf-seat-pos {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: #d4d4d8;
+}
+.pf-seat-stk {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: #e4e4e7;
+  margin-top: 0.08rem;
+}
+.pf-seat-mv {
+  display: inline-block;
+  margin-top: 0.22rem;
+  padding: 0.06rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #d4d4d8;
+  font-family: var(--font-mono);
+}
+.pf-seat-mv.kind-raise {
+  color: #e59079;
+  border-color: rgba(163, 58, 38, 0.5);
+  background: rgba(163, 58, 38, 0.1);
+}
+.pf-seat-mv.kind-call {
+  color: #a5cfa0;
+  border-color: rgba(119, 173, 114, 0.5);
+  background: rgba(119, 173, 114, 0.1);
+}
+.pf-seat-mv.kind-allin {
+  color: #e9967a;
+  border-color: rgba(233, 150, 122, 0.5);
+  background: rgba(233, 150, 122, 0.1);
+}
+.pf-dealer {
+  position: absolute;
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 50%;
+  background: #e4e4e7;
+  color: #121212;
+  font-size: 0.55rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+}
+
+/* ---- 动作频率（固定顺序：All-in → 大 size → 跟注 → 弃牌） ---- */
+.pf-acts {
+  padding: 0.6rem 0.95rem 0.3rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.pf-act {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.3rem 0;
+  cursor: pointer;
+}
+.pf-act-nm {
+  flex: 0 0 6rem;
+  font-size: 0.76rem;
+  color: #d4d4d8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pf-act-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+.pf-act-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+}
+.pf-act-pc {
+  flex: 0 0 3rem;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: #d4d4d8;
+}
+.pf-act.is-on .pf-act-nm {
+  color: #fff;
+  font-weight: 600;
+}
+.pf-act.is-on .pf-act-pc {
+  color: #c4a455;
+}
+.pf-act.is-on .pf-act-bar {
+  outline: 1px solid rgba(196, 164, 85, 0.35);
+  outline-offset: 1px;
+}
+.pf-hint {
+  padding: 1.1rem 0.95rem 1.3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: center;
+  font-size: 0.66rem;
+  color: #d4d4d8;
+}
+.pf-hint img {
+  display: block;
+  width: 2.8rem;
+  height: auto;
+  opacity: 0.1;
+}
+
+/* ---- 范围矩阵 ---- */
+.pf-gridwrap {
+  padding: 0.7rem 0.95rem 0.85rem;
+}
+/* 矩阵按视口高度封顶（再缩 10%）：网格 + 图例 + 详情一屏放得下（桌面两栏时） */
+@media (min-width: 1100px) {
+  .pf-gridcol {
+    width: min(100%, calc(90vh - 234px));
+    margin: 0 auto;
+  }
+}
+.pf-grid {
+  display: grid;
+  grid-template-columns: 1rem repeat(13, minmax(0, 1fr));
+  grid-auto-rows: auto;
+  gap: 2px;
+}
+.pf-axis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: #d4d4d8;
+}
+.pf-cell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 2px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.035);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.pf-cell:hover {
+  outline: 1px solid #f4f4f5;
+  outline-offset: -1px;
+}
+.pf-cell.is-out {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.055) 0 1px,
+    transparent 1px 5px
+  );
+}
+.pf-cell.is-zero-ev {
+  /* 用户反馈 0.75 不够明显：加深到 0.55（再低字就看不清了） */
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+.pf-cell.is-pair {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+.pf-cell-fill {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+.pf-cell-fill i {
+  display: block;
+  height: 100%;
+}
+.pf-cell-lbl {
+  position: relative;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  /* 一律白字（用户定稿）：浅色块靠双层阴影保证可读 */
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.92), 0 0 3px rgba(0, 0, 0, 0.5);
+  letter-spacing: -0.02em;
+}
+.pf-cell.is-num {
+  flex-direction: column;
+  line-height: 1;
+  gap: 2px;
+}
+.pf-cell-evn {
+  position: relative;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: -0.04em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85);
+}
+.pf-nodata {
+  padding: 3.2rem 1.4rem 3.6rem;
+  text-align: center;
+}
+.pf-nodata-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f4f4f5;
+}
+.pf-nodata-note {
+  margin: 0.4rem 0 0;
+  font-size: 0.78rem;
+  color: #d4d4d8;
+}
+.pf-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.85rem;
+  margin-top: 0.65rem;
+  font-size: 0.66rem;
+  color: #d4d4d8;
+}
+.pf-legend i {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 2px;
+  margin-right: 0.28rem;
+  vertical-align: -1px;
+}
+.pf-legend-note {
+  color: #d4d4d8;
+}
+.pf-detail {
+  margin: 0.65rem 0.95rem 0.95rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.45rem;
+  background: rgba(10, 10, 10, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.72rem;
+  color: #d4d4d8;
+  min-height: 2.1rem;
+  line-height: 1.7;
+}
+.pf-detail b {
+  color: #f4f4f5;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+.pf-detail .is-gold {
+  color: #c4a455;
+}
+
+@media (max-width: 1100px) {
+  /* 窄屏：套图简介允许换行，避免被裁出容器 */
+  .pf-sol-meta {
+    white-space: normal;
+    line-height: 1.5;
+  }
+}
+
+@media (max-width: 640px) {
+  .pf-tablewrap {
+    height: 210px;
+  }
+  .pf-seat {
+    width: 4.6rem;
+  }
+  .pf-act-nm {
+    flex-basis: 5rem;
+  }
+  .pf-cell-lbl {
+    font-size: 0.5rem;
+  }
+  .pf-cell-evn {
+    font-size: 0.55rem;
+  }
+  .pf-crumb-btn {
+    max-width: 9rem;
+  }
+  .pf-gridwrap {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 380px) {
+  /* 极窄屏：矩阵放大到可点尺寸，允许横向滚动 */
+  .pf-grid {
+    min-width: 19.5rem;
+  }
+}
+
+@media (max-width: 400px) {
+  /* 极窄屏：桌面座位收紧，避免 6 个座位互相压叠 */
+  .pf-tablewrap {
+    height: 196px;
+    margin: 0.6rem 0.25rem 0;
+  }
+  .pf-seat {
+    width: 3.45rem;
+    padding: 0.18rem 0.15rem;
+  }
+  .pf-seat-pos {
+    font-size: 0.54rem;
+    letter-spacing: 0.04em;
+  }
+  .pf-seat-stk {
+    font-size: 0.58rem;
+  }
+  .pf-seat-mv {
+    font-size: 0.52rem;
+    padding: 0.04rem 0.3rem;
+  }
+  .pf-pot-v {
+    font-size: 0.9rem;
+  }
+  .pf-dealer {
+    width: 0.8rem;
+    height: 0.8rem;
+    font-size: 0.48rem;
+  }
+}
+/* 过牌胶囊（此前 Check 会掉进加注/跟注分支被误标） */
+.pf-seat-mv.kind-check {
+  color: #a1a1aa;
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+}

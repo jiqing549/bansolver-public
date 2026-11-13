@@ -1,0 +1,4071 @@
+/* Ban2Note tool page — 左操作右结果 dashboard 布局 */
+
+/* ==============================================
+   布局骨架：左固定 sidebar + 右弹性 main
+   ============================================== */
+.ban2note-page .ban2note-layout {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  align-items: start;
+  max-width: 96rem;
+  margin: 0 auto;
+  /* 紧凑纵向：1080 屏一屏放下；顶部留出 1.5rem 呼吸位，标题不贴导航 */
+  padding: 5.5rem 1.5rem 1rem;
+  gap: 2rem;
+  min-height: calc(100vh - 5rem);
+}
+
+/* 左侧操作面板 */
+.ban2note-page .ban2note-sidebar {
+  position: sticky;
+  top: 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-height: calc(100vh - 5.5rem);
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+/* 右侧结果区 */
+.ban2note-page .ban2note-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+/* ==============================================
+   左侧：标题区
+   ============================================== */
+.ban2note-page .ban2note-header {
+  margin-bottom: 0.25rem;
+}
+
+.ban2note-page .ban2note-title {
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  font-weight: 800;
+  margin: 0 0 0.6rem;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+
+.ban2note-page .ban2note-desc {
+  color: #a1a1aa;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.65;
+}
+
+/* 备份声明：略小、琥珀提示色、与上方格式说明拉开间距 */
+.ban2note-page .ban2note-desc--warn {
+  margin-top: 0.4rem;
+  font-size: 0.8125rem;
+  color: #d4a44a;
+}
+
+/* ==============================================
+   左侧：表单字段块（玩家名 / 上传 / PVI 通用）
+   ============================================== */
+.ban2note-page .ban2note-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ban2note-page .ban2note-field--divider {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ban2note-page .ban2note-field-label {
+  color: #a1a1aa;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: block;
+}
+
+.ban2note-page .ban2note-field-note {
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: #a1a1aa;
+}
+
+.ban2note-page .ban2note-player-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.ban2note-page .ban2note-player-row .ban2note-input {
+  flex: 1;
+  width: auto;
+}
+
+.ban2note-page .ban2note-input {
+  padding: 0.6rem 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  color: #f4f4f5;
+  font-size: 0.9375rem;
+  font-family: var(--font-mono);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ban2note-page .ban2note-input:focus {
+  outline: none;
+  border-color: rgba(168, 139, 70, 0.5);
+  background: rgba(168, 139, 70, 0.04);
+}
+
+.ban2note-page .ban2note-input--compact {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* PVI 输入组：起始TP + 输入框 + 终止TP + 输入框 + 按钮，单行内联 */
+.ban2note-page .ban2note-pvi {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.ban2note-page .ban2note-pvi-inline-label {
+  color: #a1a1aa;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.ban2note-page .ban2note-pvi .ban2note-input--compact {
+  width: 4.5rem;
+  flex: 0 0 auto;
+}
+
+.ban2note-page .ban2note-pvi .ban2note-pvi-btn {
+  flex: 1 1 auto;
+}
+
+.ban2note-page .ban2note-pvi-btn {
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  background: #a88b46;
+  color: #0a0a0a;
+  border: none;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.ban2note-page .ban2note-pvi-btn:hover {
+  background: #b8994f;
+}
+
+.ban2note-page .ban2note-pvi-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ban2note-page .ban2note-pvi-btn:disabled:hover {
+  background: #a88b46;
+}
+
+/* ==============================================
+   筛选 chip（级别 / 位置，纯 UI 展示）
+   ============================================== */
+.ban2note-page .ban2note-filter-col {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.ban2note-page .ban2note-filter-title {
+  color: #a1a1aa;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  padding-top: 0.35rem;
+  min-width: 2.5rem;
+}
+
+.ban2note-page .ban2note-chips {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.ban2note-page .ban2note-chip {
+  padding: 0.35rem 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.375rem;
+  background: transparent;
+  color: #a1a1aa;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ban2note-page .ban2note-chip:hover {
+  border-color: rgba(168, 139, 70, 0.5);
+  color: #f4f4f5;
+}
+
+.ban2note-page .ban2note-chip--active {
+  border-color: #a88b46;
+  background: rgba(168, 139, 70, 0.15);
+  color: #c4a455;
+}
+
+.ban2note-page .ban2note-filter-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.6875rem;
+  color: #a1a1aa;
+}
+
+/* ==============================================
+   上传区（左侧卡片）
+   ============================================== */
+.ban2note-page .ban2note-upload {
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  border-style: dashed;
+  border-color: rgba(168, 139, 70, 0.35);
+  border-radius: 0.75rem;
+  background: rgba(24, 24, 27, 0.4);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.ban2note-page .ban2note-upload:not(.ban2note-upload--done):not(.ban2note-upload--loading):hover {
+  border-color: rgba(168, 139, 70, 0.55);
+  background: rgba(168, 139, 70, 0.04);
+}
+
+.ban2note-page .ban2note-upload--drag {
+  border-color: #a88b46;
+  background: rgba(168, 139, 70, 0.08);
+}
+
+.ban2note-page .ban2note-upload--loading {
+  cursor: wait;
+}
+
+.ban2note-page .ban2note-upload--done {
+  cursor: default;
+  border-style: solid;
+  border-color: rgba(34, 197, 94, 0.25);
+}
+
+/* 覆盖 .card 的默认 hover（金边），上传区用自己专属的 hover 配色 */
+.ban2note-page .ban2note-upload.card:hover {
+  border-color: rgba(168, 139, 70, 0.55);
+  background: rgba(168, 139, 70, 0.04);
+}
+
+.ban2note-page .ban2note-upload--done.card:hover,
+.ban2note-page .ban2note-upload--loading.card:hover {
+  border-color: rgba(34, 197, 94, 0.25);
+  background: rgba(24, 24, 27, 0.4);
+}
+
+.ban2note-page .ban2note-upload--drag.card:hover {
+  border-color: #a88b46;
+  background: rgba(168, 139, 70, 0.08);
+}
+
+.ban2note-page .ban2note-upload-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.ban2note-page .ban2note-upload-svg {
+  width: 2rem;
+  height: 2rem;
+  color: #a88b46;
+  margin-bottom: 0.3rem;
+}
+
+.ban2note-page .ban2note-upload-spinner {
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-bottom: 0.5rem;
+  border: 2px solid rgba(168, 139, 70, 0.25);
+  border-top-color: #a88b46;
+  border-radius: 50%;
+  animation: ban2-spin 0.7s linear infinite;
+}
+
+@keyframes ban2-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ban2note-page .ban2note-upload-success-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-bottom: 0.3rem;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  font-size: 0.875rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ban2note-page .ban2note-upload-error {
+  width: 100%;
+  margin-bottom: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.5rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  font-size: 0.8125rem;
+  text-align: left;
+  line-height: 1.5;
+}
+
+.ban2note-page .ban2note-upload-filename {
+  font-family: var(--font-mono);
+  color: #a1a1aa;
+  word-break: break-all;
+}
+
+.ban2note-page .ban2note-upload-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 0.6rem;
+}
+
+.ban2note-page .ban2note-upload-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background: #a88b46;
+  color: #0a0a0a;
+  border: none;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.ban2note-page .ban2note-upload-btn:hover {
+  background: #b8994f;
+}
+
+.ban2note-page .ban2note-upload-btn--outline {
+  background: transparent;
+  color: #a88b46;
+  border: 1px solid rgba(168, 139, 70, 0.45);
+}
+
+.ban2note-page .ban2note-upload-btn--outline:hover {
+  background: rgba(168, 139, 70, 0.08);
+}
+
+.ban2note-page .ban2note-upload-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.ban2note-page .ban2note-upload-sub {
+  color: #9ca3af;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+/* ==============================================
+   右侧：空状态占位
+   ============================================== */
+.ban2note-page .ban2note-placeholder {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.875rem;
+  text-align: center;
+  min-height: 60vh;
+  padding: 4rem 1.5rem;
+  color: #a1a1aa;
+}
+
+.ban2note-page .ban2note-placeholder-mark {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  width: clamp(36rem, 70vw, 60rem);
+  height: auto;
+  opacity: 0.1;
+  pointer-events: none;
+  transform: translate(50%, 50%);
+}
+
+.ban2note-page .ban2note-placeholder-art {
+  position: relative;
+  z-index: 1;
+  width: 120px;
+  height: 120px;
+  opacity: 0.5;
+}
+
+.ban2note-page .ban2note-placeholder-text {
+  position: relative;
+  z-index: 1;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: #a1a1aa;
+}
+
+.ban2note-page .ban2note-placeholder-sub {
+  position: relative;
+  z-index: 1;
+  font-size: 0.875rem;
+  color: #a1a1aa;
+  max-width: 20rem;
+  line-height: 1.6;
+}
+
+/* ==============================================
+   右侧：统计卡片
+   ============================================== */
+.ban2note-page .ban2-stat-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ban2note-page .ban2-stat-row {
+  display: grid;
+  gap: 0.625rem;
+}
+
+.ban2note-page .ban2-stat-row--dense {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+
+@media (max-width: 1399px) {
+  .ban2note-page .ban2-stat-row--dense {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 639px) {
+  .ban2note-page .ban2-stat-row--dense {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* 统计卡片 / 曲线卡片 / 波动卡片：抑制 .card 的金色 hover，保持低调 */
+.ban2note-page .ban2-stat-card.card:hover,
+.ban2note-page .ban2-pos-card.card:hover,
+.ban2note-page .ban2-chart.card:hover,
+.ban2note-page .ban2note-variance.card:hover {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(24, 24, 27, 0.6);
+}
+
+.ban2note-page .ban2-stat-card {
+  text-align: center;
+  /* 只压垂直 padding 缩高：字体/宽度不变（用户 2026-09-22 拍板） */
+  padding: 0.375rem 0.5rem;
+  min-width: 0;
+}
+
+.ban2note-page .ban2-stat-label {
+  color: #9ca3af;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  margin-bottom: 0.4rem;
+  min-height: 2.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ban2note-page .ban2-stat-value {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: #e4e4e7;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 空占位卡：value 区撑足一行（1.0625rem × 1.6 行高），整卡与有值卡同尺寸 */
+.ban2note-page .ban2-stat-card--blank .ban2-stat-value {
+  min-height: 1.7rem;
+}
+
+.ban2note-page .ban2-stat-value--primary {
+  font-size: 1.25rem;
+}
+
+.ban2note-page .ban2-stat-value--rake {
+  color: #f59e0b;
+}
+
+.ban2note-page .ban2-stat-value--metric {
+  color: #d4d4d8;
+}
+
+/* 频率指标行（第三行）：数值下方 GTO 基准行直接复用位置卡的 ban2-pos-baseline 类（样式统一），
+   只收紧本行标签带与 padding，使整卡仍 92px 与其他行等高 */
+.ban2note-page .ban2-stat-row--freq .ban2-stat-card {
+  padding: 0.25rem 0.5rem;
+}
+
+.ban2note-page .ban2-stat-row--freq .ban2-stat-label {
+  min-height: 1.6rem;
+  margin-bottom: 0.3rem;
+}
+
+.ban2note-page .ban2-stat-row--freq .ban2-stat-card--blank .ban2-stat-value {
+  min-height: 2.4rem;
+}
+
+/* 位置水后百手卡片：与前两行统计卡同尺寸 ——
+   位置名一行 + 数值行（复用统计卡字号）+ GTO/PRO 两行基准小字 */
+.ban2note-page .ban2-pos-card {
+  text-align: center;
+  /* 与统计卡同高度预算：只收垂直 padding 与行距，字体不变 */
+  padding: 0.05rem 0.5rem;
+  min-width: 0;
+}
+
+.ban2note-page .ban2-pos-head {
+  line-height: 1.3;
+  margin-bottom: 0.2rem;
+}
+
+.ban2note-page .ban2-pos-name {
+  color: #d4d4d8;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* 位置卡数值行复用 ban2-stat-value（globals 遗留规则把统计卡 value 强制 24px，
+   共用类保证字号/行高与上两行同步，卡片总高随之对齐） */
+.ban2note-page .ban2-pos-value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* GTO / PRO 基准行 */
+.ban2note-page .ban2-pos-baseline {
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ban2note-page .ban2-pos-baseline-label {
+  color: #71717a;
+}
+
+.ban2note-page .ban2-pos-baseline-val--gto {
+  color: #a88b46;
+}
+
+.ban2note-page .ban2-pos-baseline-val--pro {
+  color: #b8b8c0;
+}
+
+/* ==============================================
+   右侧：盈利曲线
+   ============================================== */
+.ban2note-page .ban2-chart {
+  padding: 0.5rem;
+  overflow: hidden;
+}
+
+.ban2note-page .ban2-chart-canvas {
+  width: 100%;
+  height: 300px;
+  display: block;
+  cursor: crosshair;
+}
+
+/* 曲线图例（canvas 下方 DOM，带勾选框控制每条线显隐） */
+.ban2note-page .curve-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  padding: 0.5rem 0.75rem 0.375rem;
+}
+
+.ban2note-page .curve-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  color: #a1a1aa;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ban2note-page .curve-legend-item:hover { color: #f4f4f5; }
+
+.ban2note-page .curve-legend-item input {
+  width: 13px;
+  height: 13px;
+  accent-color: #a88b46;
+  cursor: pointer;
+}
+
+.ban2note-page .curve-legend-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+}
+
+/* ==============================================
+   右侧：波动预估卡片
+   ============================================== */
+.ban2note-page .ban2note-variance {
+  padding: 1.25rem 1.5rem;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 11rem;
+  border-color: rgba(168, 139, 70, 0.2);
+}
+
+.ban2note-page .ban2note-variance-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a88b46;
+}
+
+.ban2note-page .ban2note-variance-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: #f4f4f5;
+}
+
+.ban2note-page .ban2note-variance-summary {
+  margin: 0 0 0.65rem;
+  font-size: 0.8125rem;
+  color: #a1a1aa;
+  font-variant-numeric: tabular-nums;
+}
+
+.ban2note-page .ban2note-variance-chart-wrap {
+  margin: 0 -0.35rem 0.35rem;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  background: #0a0a0a;
+}
+
+.ban2note-page .ban2note-variance-chart {
+  width: 100%;
+  height: 168px;
+  display: block;
+}
+
+.ban2note-page .ban2note-variance-chart-caption {
+  margin: 0 0 0.75rem;
+  font-size: 0.6875rem;
+  color: #a1a1aa;
+  text-align: center;
+}
+
+.ban2note-page .ban2note-variance-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.ban2note-page .ban2note-variance-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.ban2note-page .ban2note-variance-metric-label {
+  font-size: 0.6875rem;
+  color: #a1a1aa;
+}
+
+.ban2note-page .ban2note-variance-metric-value {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #f4f4f5;
+}
+
+.ban2note-page .ban2note-variance-verdict {
+  margin: 0 0 0.35rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: #e4e4e7;
+}
+
+.ban2note-page .ban2note-variance-desc {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: #a1a1aa;
+}
+
+/* ==============================================
+   Footer
+   ============================================== */
+.ban2note-page .ban2note-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0.75rem 1.5rem;
+  text-align: center;
+}
+
+.ban2note-page .ban2note-footer-note {
+  color: #a1a1aa;
+  font-size: 0.8125rem;
+}
+
+/* ==============================================
+   详细数据：HM3/PT4 风格 stats 矩阵
+   ============================================== */
+.ban2note-page .ban2note-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ban2note-page .ban2note-detail-group {
+  padding: 0.85rem 1rem;
+}
+
+.ban2note-page .ban2note-detail-group.card:hover {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(24, 24, 27, 0.6);
+}
+
+.ban2note-page .ban2note-detail-group-name {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a88b46;
+  margin-bottom: 0.6rem;
+}
+
+.ban2note-page .ban2note-detail-cells {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(82px, 1fr));
+  gap: 0.35rem;
+}
+
+.ban2note-page .ban2note-detail-cell {
+  text-align: center;
+  padding: 0.45rem 0.3rem;
+  border-radius: 0.375rem;
+  background: rgba(255, 255, 255, 0.025);
+  min-width: 0;
+}
+
+.ban2note-page .ban2note-detail-value {
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #e4e4e7;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ban2note-page .ban2note-detail-label {
+  font-size: 0.6875rem;
+  color: #a1a1aa;
+  margin-top: 0.25rem;
+  line-height: 1.25;
+  white-space: normal;
+  word-break: keep-all;
+}
+
+.ban2note-page .ban2note-detail-note {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  text-align: center;
+}
+
+/* 开发中警示横幅：amber 边框 + 半透明背景，位于详细数据顶部 */
+.ban2note-page .ban2note-detail-wip {
+  padding: 0.6rem 0.9rem;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  background: rgba(245, 158, 11, 0.1);
+  border-radius: 0.5rem;
+  color: #fbbf24;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.4;
+}
+
+@media (max-width: 639px) {
+  .ban2note-page .ban2note-detail-cells {
+    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  }
+}
+
+/* ==============================================
+   运气如何：运气指标卡片
+   ============================================== */
+.ban2note-page .ban2note-luck-block {
+  padding: 1rem 1.25rem;
+}
+
+.ban2note-page .ban2note-luck-block.card:hover {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(24, 24, 27, 0.6);
+}
+
+.ban2note-page .ban2note-luck-label {
+  margin: 0 0 0.6rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a88b46;
+}
+
+/* 起手牌：六张卡片网格 */
+.ban2note-page .ban2note-luck-cards {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
+}
+
+.ban2note-page .ban2note-luck-card {
+  text-align: center;
+  padding: 0.6rem 0.4rem;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* 牌名与位置 chip 字体一致（sans, inherit） */
+.ban2note-page .ban2note-luck-card-hand {
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 0.9375rem;
+  color: #f4f4f5;
+  margin-bottom: 0.3rem;
+}
+
+.ban2note-page .ban2note-luck-card-count {
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 0.25rem;
+}
+
+.ban2note-page .ban2note-luck-card-actual {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #e4e4e7;
+}
+
+.ban2note-page .ban2note-luck-card-sep {
+  color: #a1a1aa;
+  font-size: 0.875rem;
+  margin: 0 0.15rem;
+}
+
+.ban2note-page .ban2note-luck-card-theory {
+  font-size: 0.8125rem;
+  color: #a88b46;
+}
+
+.ban2note-page .ban2note-luck-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.ban2note-page .ban2note-luck-card-rate {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ban2note-page .ban2note-luck-card-rate-label {
+  font-size: 0.625rem;
+  color: #a1a1aa;
+}
+
+@media (max-width: 1023px) {
+  .ban2note-page .ban2note-luck-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 479px) {
+  .ban2note-page .ban2note-luck-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* 各街两对以上摊牌胜率 */
+.ban2note-page .ban2note-luck-streets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.ban2note-page .ban2note-luck-street-card {
+  text-align: center;
+  padding: 0.75rem 0.4rem;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ban2note-page .ban2note-luck-street-name {
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  margin-bottom: 0.3rem;
+}
+
+.ban2note-page .ban2note-luck-street-wsd {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.ban2note-page .ban2note-luck-street-total {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #a1a1aa;
+}
+
+.ban2note-page .ban2note-luck-street-detail {
+  font-size: 0.6875rem;
+  color: #a1a1aa;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 639px) {
+  .ban2note-page .ban2note-luck-streets {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==============================================
+   右侧：分页切换（数据页 ↔ 扩展页）—— 连体分段控件
+   ============================================== */
+.ban2note-page .ban2note-pager {
+  display: inline-flex;
+  align-self: flex-end;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+/* 一键分享按钮：浮在曲线卡片右下角（不动 tab 行） */
+.ban2note-page .ban2-chart--share {
+  position: relative;
+}
+
+.ban2note-page .ban2note-share-btn--float {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.75rem;
+}
+
+.ban2note-page .ban2note-share-btn {
+  border-radius: 0.5rem;
+  border: 1px solid rgba(168, 139, 70, 0.45);
+  background: rgba(168, 139, 70, 0.12);
+  color: #c4a455;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.ban2note-page .ban2note-share-btn:hover {
+  background: rgba(168, 139, 70, 0.22);
+}
+
+.ban2note-page .ban2note-share-btn--float {
+  background: rgba(20, 20, 24, 0.78);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+/* 一键分享弹窗（复用 b2rp-mask/panel 骨架） */
+.ban2note-page .ban2-share-panel {
+  max-width: 560px;
+}
+
+.ban2note-page .ban2-share-generate {
+  margin-left: auto;
+  padding: 0.25rem 0.8rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(168, 139, 70, 0.45);
+  background: rgba(168, 139, 70, 0.15);
+  color: #c4a455;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ban2note-page .ban2-share-close {
+  border: none;
+  background: none;
+  color: #71717a;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0 0.2rem;
+}
+
+.ban2note-page .ban2-share-body {
+  padding: 0.75rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.ban2note-page .ban2-share-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  color: #9ca3af;
+}
+
+.ban2note-page .ban2-share-input {
+  background: #131318;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  color: #e4e4e7;
+  font-size: 0.9375rem;
+}
+
+.ban2note-page .ban2-share-input:focus {
+  outline: none;
+  border-color: rgba(168, 139, 70, 0.55);
+}
+
+.ban2note-page .ban2-share-check {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8125rem;
+  color: #9ca3af;
+  cursor: pointer;
+}
+
+.ban2note-page .ban2-share-check input {
+  accent-color: #a88b46;
+  width: 0.95rem;
+  height: 0.95rem;
+  cursor: pointer;
+}
+
+.ban2note-page .ban2-share-styles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.6rem;
+}
+
+.ban2note-page .ban2-share-style {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: #9ca3af;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.ban2note-page .ban2-share-style canvas {
+  width: 100%;
+  height: auto;
+  border-radius: 0.4rem;
+}
+
+.ban2note-page .ban2-share-style--on {
+  border-color: rgba(168, 139, 70, 0.6);
+  color: #c4a455;
+}
+
+.ban2note-page .ban2-share-preview {
+  display: block;
+  max-height: 220px;
+  max-width: 100%;
+  width: auto;
+  margin: 0 auto;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ban2note-page .ban2-share-status {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #c4a455;
+  text-align: center;
+}
+
+.ban2note-page .ban2note-pager-btn {
+  padding: 0.3rem 0.75rem;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: #a1a1aa;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ban2note-page .ban2note-pager-btn + .ban2note-pager-btn {
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.ban2note-page .ban2note-pager-btn:hover {
+  color: #f4f4f5;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ban2note-page .ban2note-pager-btn--active {
+  background: rgba(168, 139, 70, 0.18);
+  color: #c4a455;
+}
+
+/* 扩展页占位：弱化视觉，提示「待替换」 */
+.ban2note-page .ban2-stat-card--placeholder {
+  opacity: 0.55;
+}
+
+.ban2note-page .ban2-chart--placeholder {
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 440px;
+}
+
+.ban2note-page .ban2note-placeholder-mini {
+  color: #a1a1aa;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+@media (max-width: 1023px) {
+  .ban2note-page .ban2note-pager {
+    align-self: flex-start;
+  }
+}
+
+/* ==============================================
+   响应式：窄屏退回单列
+   ============================================== */
+@media (max-width: 1023px) {
+  .ban2note-page .ban2note-layout {
+    grid-template-columns: 1fr;
+    padding: 6rem 1.5rem 2rem;
+  }
+
+  .ban2note-page .ban2note-sidebar {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
+}
+
+@media (max-width: 767px) {
+  .ban2note-page .ban2note-variance-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==============================================
+   对比GTO tab
+   ============================================== */
+
+/* 空状态 */
+.ban2note-page .ban2note-gto-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 4rem 1rem;
+  color: #71717a;
+}
+
+/* 计算中状态 */
+.ban2note-page .ban2note-gto-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 3rem 1rem;
+  color: #71717a;
+}
+
+/* 图例卡片 */
+.ban2note-page .ban2note-gto-legend {
+  padding: 0.85rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.ban2note-page .ban2note-gto-legend-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #d4d4d8;
+}
+
+.ban2note-page .ban2note-gto-legend-swatch {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 0.2rem;
+  display: inline-block;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.ban2note-page .ban2note-gto-legend-swatch--gold {
+  background: rgba(196, 164, 85, 0.85);
+}
+
+.ban2note-page .ban2note-gto-legend-swatch--green {
+  background: rgba(34, 197, 94, 0.8);
+}
+
+.ban2note-page .ban2note-gto-legend-swatch--red {
+  background: rgba(239, 68, 68, 0.8);
+}
+
+.ban2note-page .ban2note-gto-legend-sep {
+  width: 1px;
+  height: 0.85rem;
+  background: rgba(255, 255, 255, 0.12);
+  margin: 0 0.35rem;
+}
+
+.ban2note-page .ban2note-gto-legend-note {
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+  color: #71717a;
+  line-height: 1.5;
+}
+
+.ban2note-page .ban2note-gto-legend-note strong {
+  color: #c4a455;
+  font-weight: 600;
+}
+
+/* 位置行：左信息 + 右三矩阵横向并排 */
+.ban2note-page .ban2note-pos-row {
+  display: flex;
+  align-items: stretch;
+  gap: 1.25rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+/* 左：位置信息区（固定宽度，不随矩阵拉伸） */
+.ban2note-page .ban2note-pos-meta {
+  flex: 0 0 auto;
+  min-width: 6.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-right: 1rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ban2note-page .ban2note-pos-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f4f4f5;
+}
+
+.ban2note-page .ban2note-pos-count {
+  font-size: 0.7rem;
+  color: #71717a;
+}
+
+/* 汇总频率：PFR / GTO / 差值 */
+.ban2note-page .ban2note-pos-freqs {
+  margin: 0.5rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ban2note-page .ban2note-pos-freq {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.ban2note-page .ban2note-pos-freq dt {
+  font-size: 0.65rem;
+  color: #71717a;
+  width: 2rem;
+  flex: 0 0 auto;
+}
+
+.ban2note-page .ban2note-pos-freq dd {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #e4e4e7;
+}
+
+/* 差值配色：偏紧（漏开，diff>0）= 红，偏松（过度，diff<0）= 绿 */
+.ban2note-page .ban2note-pos-freq--lo dd {
+  color: #f87171;
+}
+
+.ban2note-page .ban2note-pos-freq--hi dd {
+  color: #4ade80;
+}
+
+/* BB 防守分区 */
+.ban2note-page .ban2note-gto-section-title {
+  margin: 1.5rem 0 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #c4a455;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* BB 防守开注尺寸 filter chips（默认 / 2BB / 2.5BB） */
+.ban2note-page .ban2note-gto-filter {
+  display: inline-flex;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+}
+
+.ban2note-page .ban2note-gto-filter-btn {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: #a1a1aa;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.ban2note-page .ban2note-gto-filter-btn:hover {
+  color: #e4e4e7;
+  border-color: rgba(196, 164, 85, 0.4);
+}
+
+.ban2note-page .ban2note-gto-filter-btn.is-on {
+  color: #c4a455;
+  border-color: rgba(196, 164, 85, 0.55);
+  background: rgba(196, 164, 85, 0.08);
+}
+
+/* 行标题旁：该树此位置的开注尺寸标注 */
+.ban2note-page .ban2note-pos-opensize {
+  margin-left: 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: #71717a;
+  letter-spacing: 0.02em;
+}
+
+/* 求解树加载状态条（GTO 基准来自翻前树 JSON） */
+.ban2note-page .ban2note-gto-treebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 0.625rem;
+  margin-bottom: 0.75rem;
+}
+
+.ban2note-page .ban2note-gto-treebar-loading {
+  color: #71717a;
+}
+
+.ban2note-page .ban2note-gto-retry {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(196, 164, 85, 0.55);
+  background: rgba(196, 164, 85, 0.08);
+  color: #c4a455;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ban2note-page .ban2note-gto-retry:hover {
+  background: rgba(196, 164, 85, 0.16);
+}
+
+.ban2note-page .ban2note-gto-legend-note--defend {
+  color: #a1a1aa;
+  margin-bottom: 0.75rem;
+}
+
+/* BB 防守与 RFI 共用 .ban2note-pos-* 样式，不额外上色，保证视觉统一 */
+
+.ban2note-page .ban2note-pos-matrix-sublabel {
+  font-size: 0.6875rem;
+  color: #71717a;
+  margin: 0.4rem 0 0.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ban2note-page .ban2note-pos-hint {
+  font-size: 0.62rem;
+  color: #71717a;
+  line-height: 1.4;
+  margin-top: 0.25rem;
+}
+
+/* 右：三矩阵横向并排，均分剩余空间 */
+.ban2note-page .ban2note-pos-matrices {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  min-width: 0; /* 允许内部网格收缩 */
+}
+
+.ban2note-page .ban2note-pos-matrix {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.ban2note-page .ban2note-pos-matrix-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #a1a1aa;
+}
+
+.ban2note-page .ban2note-pos-matrix-pending {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 0.7rem;
+  color: #52525b;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.015);
+  min-height: 4rem;
+}
+
+/* 13×13 矩阵网格（紧凑版，三列并排时缩小） */
+.ban2note-page .ban2note-matrix {
+  overflow: hidden;
+}
+
+.ban2note-page .ban2note-matrix-grid {
+  display: grid;
+  gap: 1px;
+  width: 100%;
+  user-select: none;
+}
+
+.ban2note-page .ban2note-matrix-corner {
+  width: 0.7rem;
+}
+
+.ban2note-page .ban2note-matrix-axis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #52525b;
+  font-size: 0.55rem;
+  padding: 0.05rem;
+}
+
+.ban2note-page .ban2note-matrix-cell {
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.45rem;
+  letter-spacing: -0.03em;
+  transition: transform 0.1s;
+  overflow: hidden;
+}
+
+.ban2note-page .ban2note-matrix-cell:hover {
+  transform: scale(1.3);
+  z-index: 2;
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* 样本过少的格子：虚线边框提示可信度低 */
+.ban2note-page .ban2note-matrix-cell--sparse {
+  border-style: dashed;
+  opacity: 0.7;
+}
+
+/* delta 矩阵：用户无样本的格子，黑色跳过 */
+.ban2note-page .ban2note-matrix-cell--skip {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+/* 窄屏：每行堆叠成上下（信息在上，矩阵折行） */
+@media (max-width: 900px) {
+  .ban2note-page .ban2note-pos-row {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .ban2note-page .ban2note-pos-meta {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 1rem;
+    padding-right: 0;
+    padding-bottom: 0.6rem;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    min-width: 0;
+  }
+
+  .ban2note-page .ban2note-pos-freqs {
+    flex-direction: row;
+    margin-top: 0;
+  }
+
+  .ban2note-page .ban2note-pos-hint {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .ban2note-page .ban2note-pos-matrices {
+    flex-direction: column;
+  }
+
+  .ban2note-page .ban2note-matrix-cell {
+    font-size: 0.55rem;
+  }
+}
+/* ================================================================
+   盈利矩阵 + 查看牌谱 + 单手回放
+   ================================================================ */
+
+/* ── 盈利矩阵：复用 GTO range 矩阵骨架（.ban2note-matrix-*），
+      格子放「组合名 + 净盈利」两行，加 --pnl 修饰层。
+      ① 宽度封顶：不限宽的话 13 列会各自撑开，整块变成巨方阵；
+      ② 字号比 range 矩阵调大一档（格子两行文字，.45rem 读不出来）；
+      ③ 悬停不放大（13×13 挤在一起时放大反而盖住邻格）；
+      ④ 无样本格的组合名给一点对比，否则整片灰糊在一起。 */
+.ban2note-page .ban2note-matrix--pnl {
+  max-width: 44rem;
+  margin-inline: auto;
+}
+
+.ban2note-page .ban2note-matrix--pnl .ban2note-matrix-cell {
+  flex-direction: column;
+  gap: 0;
+  line-height: 1.06;
+  font-size: 0.6rem;
+  padding: 0.05rem;
+  letter-spacing: 0;
+}
+
+.ban2note-page .ban2note-matrix--pnl .ban2note-matrix-cell:hover {
+  transform: none;
+  border-color: rgba(255, 255, 255, 0.45);
+  background: inherit;
+}
+
+.ban2note-page .ban2note-matrix--pnl .ban2note-matrix-cell-key {
+  font-weight: 700;
+}
+
+.ban2note-page .ban2note-matrix--pnl .ban2note-matrix-cell-val {
+  font-size: 0.52rem;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.88;
+}
+
+.ban2note-page .ban2note-matrix--pnl .ban2note-matrix-cell--none {
+  border-color: rgba(255, 255, 255, 0.03);
+}
+
+.ban2note-page .ban2note-matrix--pnl .ban2note-matrix-cell--none .ban2note-matrix-cell-key {
+  color: rgba(255, 255, 255, 0.34);
+}
+
+.ban2note-page .ban2note-matrix-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.9rem;
+  margin: 0;
+  font-size: 0.6875rem;
+  color: #a1a1aa;
+}
+
+.ban2note-page .ban2note-matrix-legend i {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 2px;
+  vertical-align: -0.11rem;
+  margin-right: 0.3rem;
+}
+
+/* 矩阵左移，右栏为「点击某格 → 该组合盈利明细」的动态详情卡 */
+.ban2note-page .ban2note-pnl-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.ban2note-page .ban2note-pnl-wrap .ban2note-matrix--pnl {
+  flex: 0 1 40rem;
+  max-width: 40rem;
+  margin-inline: 0;
+  min-width: 0;
+}
+
+.ban2note-page .ban2note-matrix-cell--pnl {
+  cursor: pointer;
+}
+
+.ban2note-page .ban2note-matrix-cell--pnl:focus-visible {
+  outline: 2px solid #c4a455;
+  outline-offset: 1px;
+}
+
+.ban2note-page .ban2note-matrix--pnl .ban2note-matrix-cell--active,
+.ban2note-page .ban2note-matrix--pnl .ban2note-matrix-cell--active:hover {
+  position: relative;
+  z-index: 2;
+  border-color: #c4a455 !important;
+  box-shadow: 0 0 0 1px #c4a455, 0 0 0 3px rgba(196, 164, 85, 0.25);
+}
+
+.ban2note-page .ban2note-pnl-detail {
+  flex: 1 1 17rem;
+  min-width: 15rem;
+  max-width: 44rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 0.8rem 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.ban2note-page .ban2note-pnl-detail--empty {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 9rem;
+}
+
+/* 卡片高于矩阵时走卡内滚动：滚动条做成常显细条，给「下面还有内容」一个可见线索 */
+.ban2note-page .ban2note-pnl-detail::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.ban2note-page .ban2note-pnl-detail::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ban2note-page .ban2note-pnl-detail::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 4px;
+}
+
+.ban2note-page .ban2note-pnl-detail::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.ban2note-page .ban2note-pnl-detail-title {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a88b46;
+}
+
+.ban2note-page .ban2note-pnl-detail-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  line-height: 1.7;
+}
+
+/* 组合名并入信息块置顶：key + 类别胶囊 + 关闭按钮同一行 */
+.ban2note-page .ban2note-pnl-detail-main-top {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.ban2note-page .ban2note-pnl-detail-key {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #e4e4e7;
+  letter-spacing: 0.01em;
+}
+
+.ban2note-page .ban2note-pnl-detail-cat {
+  font-size: 0.6875rem;
+  color: #a1a1aa;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 0.05rem 0.45rem;
+}
+
+.ban2note-page .ban2note-pnl-detail-x {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  margin-left: auto;
+  padding: 0;
+  border: none;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: #71717a;
+  font-family: inherit;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.ban2note-page .ban2note-pnl-detail-x:hover {
+  color: #c4a455;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ban2note-page .ban2note-pnl-detail-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ban2note-page .ban2note-pnl-detail-main-label {
+  font-size: 0.6875rem;
+  color: #a1a1aa;
+}
+
+.ban2note-page .ban2note-pnl-detail-main-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+.ban2note-page .ban2note-pnl-detail-main-sub {
+  font-size: 0.6875rem;
+  color: #a1a1aa;
+  font-variant-numeric: tabular-nums;
+}
+
+.ban2note-page .ban2note-pnl-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.ban2note-page .ban2note-pnl-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.4rem;
+  background: rgba(255, 255, 255, 0.016);
+}
+
+.ban2note-page .ban2note-pnl-stat-label {
+  font-size: 0.625rem;
+  color: #a1a1aa;
+}
+
+.ban2note-page .ban2note-pnl-stat-value {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #e4e4e7;
+  font-variant-numeric: tabular-nums;
+}
+
+.ban2note-page .ban2note-pnl-pos-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.ban2note-page .ban2note-pnl-detail-sub {
+  margin: 0.15rem 0 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #a88b46;
+}
+
+.ban2note-page .ban2note-pnl-pos-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ban2note-page .ban2note-pnl-pos-table th {
+  padding: 0.28rem 0.35rem;
+  text-align: right;
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: #a1a1aa;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+}
+
+.ban2note-page .ban2note-pnl-pos-table td {
+  padding: 0.28rem 0.35rem;
+  text-align: right;
+  color: #d4d4d8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  white-space: nowrap;
+}
+
+.ban2note-page .ban2note-pnl-pos-table th:first-child,
+.ban2note-page .ban2note-pnl-pos-table td:first-child {
+  text-align: left;
+}
+
+.ban2note-page .ban2note-pnl-pos-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* 翻前动作区块：沿用「按位置」表的表格样式，只补一条口径说明的排版 */
+.ban2note-page .ban2note-pnl-act-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.ban2note-page .ban2note-pnl-act-note {
+  margin: 0.15rem 0 0;
+  font-size: 0.625rem;
+  line-height: 1.65;
+  color: #8f8f98;
+}
+
+/* 逐手明细：默认折叠；展开后是固定高度的纵向滚动列表（否则几十手会把详情卡撑到几千像素） */
+.ban2note-page .ban2note-pnl-hands {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.4rem;
+  background: rgba(255, 255, 255, 0.016);
+  min-width: 0;
+}
+
+.ban2note-page .ban2note-pnl-hands-sum {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.42rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #a88b46;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.ban2note-page .ban2note-pnl-hands-sum::-webkit-details-marker {
+  display: none;
+}
+
+.ban2note-page .ban2note-pnl-hands-sum::before {
+  content: "▸";
+  font-size: 0.7rem;
+  color: #71717a;
+  transition: transform 0.15s;
+}
+
+.ban2note-page .ban2note-pnl-hands[open] .ban2note-pnl-hands-sum::before {
+  transform: rotate(90deg);
+}
+
+.ban2note-page .ban2note-pnl-hands-sum:hover {
+  color: #c4a455;
+}
+
+/* 逐手明细排序按钮：时间 → 盈利高→低 → 盈利低→高 循环切换 */
+.ban2note-page .ban2note-pnl-hands-sort {
+  padding: 0.08rem 0.42rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.3rem;
+  background: transparent;
+  color: #a1a1aa;
+  font-family: inherit;
+  font-size: 0.625rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.ban2note-page .ban2note-pnl-hands-sort:hover {
+  color: #c4a455;
+  border-color: rgba(168, 139, 70, 0.6);
+}
+
+.ban2note-page .ban2note-pnl-hands-sort--active {
+  color: #c4a455;
+  border-color: rgba(168, 139, 70, 0.6);
+  background: rgba(168, 139, 70, 0.14);
+}
+
+.ban2note-page .ban2note-pnl-hands-count {
+  margin-left: auto;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: #a1a1aa;
+}
+
+.ban2note-page .ban2note-pnl-hands-list {
+  max-height: 15rem;
+  overflow-y: auto;
+  padding: 0 0.55rem 0.3rem;
+}
+
+.ban2note-page .ban2note-pnl-hand {
+  display: grid;
+  grid-template-columns: 5.4rem 3.4rem 1fr 4.4rem;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.24rem 0;
+  font-size: 0.6875rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  font-variant-numeric: tabular-nums;
+}
+
+.ban2note-page .ban2note-pnl-hand:last-child {
+  border-bottom: none;
+}
+
+.ban2note-page .ban2note-pnl-hand-date {
+  color: #a1a1aa;
+}
+
+.ban2note-page .ban2note-pnl-hand-pos {
+  color: #d4d4d8;
+  font-weight: 600;
+}
+
+.ban2note-page .ban2note-pnl-hand-tag {
+  color: #8f8f98;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ban2note-page .ban2note-pnl-hand-net {
+  text-align: right;
+  font-weight: 600;
+}
+
+/* 逐手明细可点击：点某一行 → 弹出该手的牌谱回放。
+   --click 只做「左右各让 0.35rem 的悬停高亮块 + 圆角」，用等量负外边距抵消，
+   保证 grid 轨道与改动前逐像素一致；--live 才是交互态样式。 */
+.ban2note-page .ban2note-pnl-hand--click {
+  margin: 0 -0.35rem;
+  padding-left: 0.35rem;
+  padding-right: 0.35rem;
+  border-radius: 0.25rem;
+  transition: background 0.12s;
+}
+
+.ban2note-page .ban2note-pnl-hand--live {
+  cursor: pointer;
+}
+
+.ban2note-page .ban2note-pnl-hand--live:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ban2note-page .ban2note-pnl-hand--live:active {
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.ban2note-page .ban2note-pnl-hand--live:focus-visible {
+  outline: 1px solid #a88b46;
+  outline-offset: 1px;
+}
+
+.ban2note-page .ban2note-pnl-hands-hint {
+  font-weight: 400;
+  letter-spacing: 0;
+  color: #71717a;
+}
+
+/* ── 手牌区块通用（盈利矩阵 / 查看牌谱共用） */
+.ban2note-page .ban2note-hands {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.ban2note-page .ban2note-hands-block {
+  padding: 1rem 0.9rem;
+  overflow-x: auto;
+}
+
+.ban2note-page .ban2note-hands-block.card:hover {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(24, 24, 27, 0.6);
+}
+
+.ban2note-page .ban2note-hands-title {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #a88b46;
+}
+
+.ban2note-page .ban2note-hands-title-sub {
+  margin-left: 0.5rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #a1a1aa;
+  font-variant-numeric: tabular-nums;
+}
+
+.ban2note-page .ban2note-hands-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.ban2note-page .ban2note-hands-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ban2note-page .ban2note-hand-sorts {
+  display: inline-flex;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+.ban2note-page .ban2note-hand-sort {
+  padding: 0.25rem 0.6rem;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: #a1a1aa;
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.ban2note-page .ban2note-hand-sort + .ban2note-hand-sort {
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.ban2note-page .ban2note-hand-sort:hover {
+  color: #f4f4f5;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ban2note-page .ban2note-hand-sort--active {
+  background: rgba(168, 139, 70, 0.18);
+  color: #c4a455;
+}
+
+.ban2note-page .ban2note-hands-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ban2note-page .ban2note-hands-table th {
+  padding: 0.45rem 0.5rem;
+  text-align: right;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #a1a1aa;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+}
+
+.ban2note-page .ban2note-hands-table td {
+  padding: 0.45rem 0.5rem;
+  text-align: right;
+  color: #d4d4d8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  white-space: nowrap;
+}
+
+.ban2note-page .ban2note-hands-table th:first-child,
+.ban2note-page .ban2note-hands-table td:first-child {
+  text-align: left;
+}
+
+.ban2note-page .ban2note-hands-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.ban2note-page .ban2note-hands-table tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ban2note-page .ban2note-hands-key {
+  font-weight: 700;
+  color: #e4e4e7;
+}
+
+.ban2note-page .ban2note-hands-num {
+  font-weight: 600;
+}
+
+.ban2note-page .ban2note-hands-up {
+  color: #22c55e;
+}
+
+.ban2note-page .ban2note-hands-down {
+  color: #ef4444;
+}
+
+.ban2note-page .ban2note-hands-more {
+  margin-top: 0.75rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.375rem;
+  background: transparent;
+  color: #a1a1aa;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ban2note-page .ban2note-hands-more:hover {
+  border-color: #a88b46;
+  color: #c4a455;
+}
+
+.ban2note-page .ban2note-hands-empty {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  color: #a1a1aa;
+  text-align: center;
+}
+
+.ban2note-page .ban2note-hands-note {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  line-height: 1.6;
+}
+
+.ban2note-page .ban2note-hands-hint {
+  margin: 0 0 0.7rem;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+}
+
+/* ── 查看牌谱表：--hands 变体 */
+.ban2note-page .ban2note-hands-table--hands th:nth-child(-n + 3),
+.ban2note-page .ban2note-hands-table--hands td:nth-child(-n + 3) {
+  text-align: left;
+}
+
+.ban2note-page .ban2note-hands-table--hands th,
+.ban2note-page .ban2note-hands-table--hands td {
+  padding: 0.4rem 0.22rem;
+}
+
+.ban2note-page .ban2note-hand-cards {
+  white-space: nowrap;
+  font-variant-numeric: normal;
+}
+
+.ban2note-page .ban2note-hand-cards .b2-card {
+  font-weight: 700;
+  color: #a1a1aa;
+  margin-right: 0.22rem;
+}
+
+.ban2note-page .ban2note-hand-cards .b2-card--red {
+  color: #ef4444;
+}
+
+.ban2note-page .ban2note-hand-cards .b2-card--green {
+  color: #4ade80;
+}
+
+.ban2note-page .ban2note-hand-cards .b2-card--blue {
+  color: #60a5fa;
+}
+
+.ban2note-page .ban2note-hands-table--hands th.ban2note-hands-actcol,
+.ban2note-page .ban2note-hands-table--hands td.ban2note-hands-actcol {
+  text-align: left;
+}
+
+/* 行动列（第 5/8/11/14 列）允许折行：宽度够就单行，不够就折行，永不裁切 */
+.ban2note-page .ban2note-hands-table--hands td:nth-child(5),
+.ban2note-page .ban2note-hands-table--hands td:nth-child(8),
+.ban2note-page .ban2note-hands-table--hands td:nth-child(11),
+.ban2note-page .ban2note-hands-table--hands td:nth-child(14) {
+  white-space: normal;
+}
+
+.ban2note-page .b2hl-tok {
+  display: inline-block;
+  margin-right: 0.3rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ban2note-page .b2hl-tok--hero {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+/* 跑两次：牌谱表内第二行 ② 牌面 */
+.ban2note-page .ban2note-hands-board2 {
+  display: block;
+  margin-top: 0.18rem;
+}
+
+.ban2note-page .b2hl-cd {
+  display: inline-block;
+  min-width: 1.05rem;
+  margin-right: 0.18rem;
+  padding: 0 0.14rem;
+  border-radius: 0.22rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+  color: #fafafa;
+  font-variant-numeric: normal;
+}
+
+.ban2note-page .b2hl-cd--s {
+  background: #3f3f46;
+}
+
+.ban2note-page .b2hl-cd--h {
+  background: #b91c1c;
+}
+
+.ban2note-page .b2hl-cd--c {
+  background: #15803d;
+}
+
+.ban2note-page .b2hl-cd--d {
+  background: #2563eb;
+}
+
+.ban2note-page .ban2note-hands-listbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  font-variant-numeric: tabular-nums;
+}
+
+.ban2note-page .ban2note-hands-listbar .ban2note-hands-more {
+  margin-top: 0;
+}
+
+.ban2note-page .ban2note-hands-table--hands tbody tr.ban2note-hands-row {
+  cursor: pointer;
+}
+
+.ban2note-page .ban2note-hands-table--hands tbody tr.ban2note-hands-row--active td {
+  background: rgba(168, 139, 70, 0.14);
+  box-shadow: inset 2px 0 0 #a88b46;
+}
+
+.ban2note-page .ban2note-hands-table--hands tbody tr.ban2note-hands-row--active td:first-child {
+  color: #c4a455;
+}
+
+.ban2note-page .ban2note-hands-table--hands th.ban2note-hands-thsort {
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: color 0.15s, background 0.15s;
+}
+
+.ban2note-page .ban2note-hands-table--hands th.ban2note-hands-thsort:hover {
+  color: #f4f4f5;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ban2note-page .ban2note-hands-table--hands th.ban2note-hands-thsort:focus-visible {
+  outline: 1px solid #a88b46;
+  outline-offset: -2px;
+}
+
+.ban2note-page .ban2note-hands-table--hands th.ban2note-hands-thsort--active {
+  color: #c4a455;
+  background: rgba(168, 139, 70, 0.18);
+}
+
+.ban2note-page .ban2note-hands-thsort-arrow {
+  margin-left: 0.22rem;
+  font-size: 0.5rem;
+  opacity: 0.5;
+}
+
+.ban2note-page .ban2note-hands-table--hands th.ban2note-hands-thsort--active .ban2note-hands-thsort-arrow {
+  opacity: 1;
+}
+
+/* ── 单手回放弹窗（暗色高级版：哑光深呢 + 发丝金线 + 象牙牌面 + 克制单色筹码） */
+.ban2note-page .b2rp-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(4, 4, 7, 0.82);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.ban2note-page .b2rp-panel {
+  width: 100%;
+  max-width: 920px;
+  max-height: 92vh;
+  overflow-y: auto;
+  background: linear-gradient(180deg, #101015, #0b0b0e);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.78);
+}
+
+.ban2note-page .b2rp-head {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.72rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background: rgba(13, 13, 17, 0.9);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.ban2note-page .b2rp-title {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  color: #c8aa6e;
+}
+
+.ban2note-page .b2rp-meta {
+  font-size: 0.72rem;
+  color: #8f8f98;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ban2note-page .b2rp-close {
+  margin-left: auto;
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: transparent;
+  color: #8f8f98;
+  font-family: inherit;
+  font-size: 0.75rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ban2note-page .b2rp-close:hover {
+  border-color: rgba(200, 170, 110, 0.6);
+  color: #e9d7a4;
+}
+
+/* 回放翻页：舞台两侧 ‹ › 圆钮（← → 同效）+ 标题栏当前序号 */
+.ban2note-page .b2rp-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(13, 13, 17, 0.72);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: #9a9aa4;
+  font-family: inherit;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ban2note-page .b2rp-nav--prev {
+  left: 12px;
+}
+
+.ban2note-page .b2rp-nav--next {
+  right: 12px;
+}
+
+.ban2note-page .b2rp-nav:hover:not(:disabled) {
+  border-color: rgba(200, 170, 110, 0.6);
+  background: rgba(13, 13, 17, 0.92);
+  color: #e9d7a4;
+}
+
+.ban2note-page .b2rp-nav:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.ban2note-page .b2rp-nav-count {
+  color: #c8aa6e;
+  font-weight: 600;
+}
+
+/* 播放条：回到开头 / 播放暂停 / 单步 + 步数与当前街 */
+.ban2note-page .b2rp-playbar {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.9rem;
+  background: #0a0a0d;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.ban2note-page .b2rp-pbtn {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: transparent;
+  color: #8f8f98;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ban2note-page .b2rp-pbtn:hover:not(:disabled) {
+  border-color: rgba(200, 170, 110, 0.6);
+  color: #e9d7a4;
+}
+
+.ban2note-page .b2rp-pbtn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.ban2note-page .b2rp-pbtn--play {
+  width: 32px;
+  border-color: rgba(200, 170, 110, 0.4);
+  color: #c8aa6e;
+}
+
+.ban2note-page .b2rp-pbtn--play:hover:not(:disabled) {
+  border-color: rgba(200, 170, 110, 0.75);
+  background: rgba(200, 170, 110, 0.08);
+}
+
+.ban2note-page .b2rp-play-pos {
+  margin-left: 0.25rem;
+  font-size: 0.6875rem;
+  color: #8f8f98;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ban2note-page .b2rp-play-street {
+  color: #c8aa6e;
+  font-weight: 600;
+}
+
+.ban2note-page .b2rp-play-hint {
+  margin-left: auto;
+  font-size: 0.625rem;
+  color: #5d5d66;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ban2note-page .b2rp-chip--seek {
+  cursor: pointer;
+}
+
+/* 播放中当前动作的行动者：座位框金圈同步呼吸 */
+.ban2note-page .b2rp-seat--acting .b2rp-seat-box {
+  border-color: rgba(200, 170, 110, 0.85);
+  box-shadow: 0 0 0 1px rgba(200, 170, 110, 0.3), 0 0 14px rgba(200, 170, 110, 0.22);
+  animation: b2rp-acting-pulse 1.5s ease-in-out infinite;
+}
+
+/* 播放中已弃牌：整座（牌面/信息框/动作牌）50% 透明 */
+.ban2note-page .b2rp-seat--folded {
+  opacity: 0.5;
+}
+
+/* 桌面动作牌：行动者座位下方的 FOLD/CHECK/CALL/BET/RAISE 大写标签 */
+.ban2note-page .b2rp-act-tag {
+  position: absolute;
+  bottom: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.12rem 0.5rem;
+  border-radius: 3px;
+  background: rgba(8, 8, 10, 0.9);
+  border: 1px solid rgba(200, 170, 110, 0.65);
+  color: #f2e2b0;
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-indent: 0.16em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+  z-index: 3;
+}
+
+.ban2note-page .b2rp-act-tag--dim {
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #7c7c86;
+}
+
+@keyframes b2rp-acting-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(200, 170, 110, 0.3), 0 0 14px rgba(200, 170, 110, 0.22);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(200, 170, 110, 0.6), 0 0 18px rgba(200, 170, 110, 0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ban2note-page .b2rp-chip--now,
+  .ban2note-page .b2rp-seat--acting .b2rp-seat-box {
+    animation: none;
+  }
+}
+
+/* 牌桌舞台：近黑底、哑光深呢椭圆、发丝金圈、细腻噪点 */
+.ban2note-page .b2rp-stage {
+  position: relative;
+  height: 460px;
+  background: radial-gradient(ellipse at 50% 42%, #17171e 0%, #0b0b0f 72%);
+  overflow: hidden;
+}
+
+.ban2note-page .b2rp-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0.35;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px;
+}
+
+.ban2note-page .b2rp-felt {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 9%;
+  bottom: 9%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 36%, #263a30 0%, #182620 52%, #0d1611 100%);
+  border: 1px solid rgba(200, 170, 110, 0.17);
+  box-shadow:
+    inset 0 0 100px rgba(0, 0, 0, 0.75),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 26px 70px rgba(0, 0, 0, 0.55);
+}
+
+.ban2note-page .b2rp-felt-inner {
+  position: absolute;
+  inset: 15px;
+  border-radius: 50%;
+  border: 1px dashed rgba(228, 205, 150, 0.13);
+}
+
+/* 红包桌：桌布换哑光深红（金边/内圈/阴影沿用绿桌） */
+.ban2note-page .b2rp-felt--redpacket {
+  background: radial-gradient(ellipse at 50% 36%, #3d2224 0%, #281415 52%, #120a0a 100%);
+}
+
+.ban2note-page .b2rp-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  z-index: 2;
+}
+
+.ban2note-page .b2rp-board {
+  display: flex;
+  align-items: center;
+}
+
+.ban2note-page .b2rp-none {
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  color: #6b7f72;
+}
+
+.ban2note-page .b2rp-pot {
+  display: flex;
+  align-items: center;
+  gap: 0.42rem;
+  padding: 0.24rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(5, 5, 8, 0.72);
+  border: 1px solid rgba(200, 170, 110, 0.3);
+}
+
+.ban2note-page .b2rp-pot-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #c8aa6e;
+  box-shadow: 0 0 8px rgba(200, 170, 110, 0.55);
+}
+
+.ban2note-page .b2rp-pot-num {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #e9d7a4;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 座位：轻量玻璃卡 + 位置徽章；Hero 金环、赢家发丝金边 */
+.ban2note-page .b2rp-seat {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.28rem;
+  z-index: 3;
+}
+
+.ban2note-page .b2rp-seat-cards {
+  display: flex;
+  align-items: center;
+}
+
+.ban2note-page .b2rp-seat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.16rem;
+  padding: 0.3rem 0.55rem 0.34rem;
+  border-radius: 10px;
+  background: rgba(10, 10, 14, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  min-width: 88px;
+  max-width: 120px;
+  box-sizing: border-box;
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.42);
+}
+
+.ban2note-page .b2rp-seat--hero .b2rp-seat-box {
+  border-color: rgba(200, 170, 110, 0.65);
+  background: rgba(25, 20, 10, 0.85);
+  box-shadow: 0 0 0 1px rgba(200, 170, 110, 0.22), 0 8px 22px rgba(0, 0, 0, 0.42);
+}
+
+.ban2note-page .b2rp-seat--winner .b2rp-seat-box {
+  border-color: rgba(233, 215, 164, 0.45);
+}
+
+.ban2note-page .b2rp-avatar {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, #2c2c34, #16161c);
+  border: 1px solid #3c3c46;
+}
+
+.ban2note-page .b2rp-seat--hero .b2rp-avatar {
+  border-color: rgba(200, 170, 110, 0.8);
+}
+
+.ban2note-page .b2rp-avatar-i {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #e4e4e7;
+}
+
+.ban2note-page .b2rp-avatar-i--pos {
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  color: #cfcfd6;
+}
+
+.ban2note-page .b2rp-avatar-i--pos.b2rp-avatar-i--sm {
+  font-size: 0.46rem;
+  letter-spacing: 0.02em;
+}
+
+.ban2note-page .b2rp-dealer {
+  position: absolute;
+  right: -5px;
+  top: -5px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #0b0b0e;
+  border: 1px solid rgba(200, 170, 110, 0.8);
+  color: #e9d7a4;
+  font-size: 0.5rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ban2note-page .b2rp-seat-no {
+  position: absolute;
+  left: -5px;
+  bottom: -5px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #8f8f98;
+  font-size: 0.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ban2note-page .b2rp-seat-nm {
+  display: flex;
+  align-items: center;
+  gap: 0.22rem;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.ban2note-page .b2rp-seat-name {
+  font-size: 0.6563rem;
+  font-weight: 600;
+  color: #cfcfd6;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ban2note-page .b2rp-seat--hero .b2rp-seat-name {
+  color: #f4f4f5;
+}
+
+.ban2note-page .b2rp-seat-stack {
+  font-size: 0.6563rem;
+  color: #8f8f98;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 赢家徽章：细金边小字距铭牌，替代金色渐变贴纸 */
+.ban2note-page .b2rp-win {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.1rem 0.45rem;
+  border-radius: 3px;
+  background: rgba(8, 8, 10, 0.88);
+  border: 1px solid rgba(233, 215, 164, 0.6);
+  color: #e9d7a4;
+  font-size: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* 象牙牌面：微渐变乳白 + 发丝边 + 柔投影；花色用降饱和四色 */
+.ban2note-page .b2rp-card {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 42px;
+  border-radius: 5px;
+  background: linear-gradient(165deg, #fbf9f3 0%, #eeebe0 100%);
+  border: 1px solid rgba(20, 18, 12, 0.4);
+  color: #26262b;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  margin-right: 0.3rem;
+}
+
+.ban2note-page .b2rp-card:last-child {
+  margin-right: 0;
+}
+
+.ban2note-page .b2rp-card--red {
+  color: #b3383f;
+}
+
+.ban2note-page .b2rp-card--green {
+  color: #25714a;
+}
+
+.ban2note-page .b2rp-card--blue {
+  color: #2f55a0;
+}
+
+.ban2note-page .b2rp-r,
+.ban2note-page .b2rp-s {
+  display: block;
+  font-size: 1em;
+  font-weight: 800;
+  line-height: 1.02;
+}
+
+.ban2note-page .b2rp-s {
+  font-size: 0.78em;
+  margin-top: 1px;
+}
+
+.ban2note-page .b2rp-card--sm {
+  width: 20px;
+  height: 28px;
+  font-size: 0.5625rem;
+  border-radius: 4px;
+}
+
+.ban2note-page .b2rp-card--lg {
+  width: 46px;
+  height: 64px;
+  font-size: 1.3rem;
+  border-radius: 6px;
+}
+
+/* 行动路线：哑黑底 + 细分隔；街名小字距金字，筹码一律单色克制 */
+.ban2note-page .b2rp-route {
+  display: flex;
+  align-items: stretch;
+  background: #0a0a0d;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  overflow-x: auto;
+}
+
+.ban2note-page .b2rp-col {
+  flex: 1 0 150px;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ban2note-page .b2rp-col:last-child {
+  border-right: none;
+}
+
+.ban2note-page .b2rp-col--blinds {
+  flex: 0 0 128px;
+  min-width: 128px;
+  background: #0d0d11;
+}
+
+.ban2note-page .b2rp-col-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  padding: 0.5rem 0.6rem;
+  background: rgba(255, 255, 255, 0.025);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.ban2note-page .b2rp-col-title {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #c8aa6e;
+  white-space: nowrap;
+}
+
+.ban2note-page .b2rp-col-pot {
+  font-size: 0.6563rem;
+  color: #8f8f98;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ban2note-page .b2rp-col-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.6rem 0.6rem 0.8rem;
+  flex: 1 1 auto;
+}
+
+.ban2note-page .b2rp-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.ban2note-page .b2rp-cell-top {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.ban2note-page .b2rp-pos {
+  flex: 0 0 auto;
+  padding: 0.04rem 0.28rem;
+  border-radius: 4px;
+  background: #1a1a20;
+  border: 1px solid #303038;
+  color: #9a9aa4;
+  font-size: 0.5rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ban2note-page .b2rp-pos--blind {
+  background: rgba(70, 110, 165, 0.12);
+  border-color: rgba(110, 150, 205, 0.35);
+  color: #a8c4e8;
+}
+
+.ban2note-page .b2rp-pname {
+  flex: 0 1 auto;
+  font-size: 0.5625rem;
+  color: #7c7c86;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ban2note-page .b2rp-chip {
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 0.14rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: #131318;
+  color: #d4d4d8;
+  font-size: 0.625rem;
+  font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ban2note-page .b2rp-chip--fold {
+  border-color: rgba(255, 255, 255, 0.05);
+  background: transparent;
+  color: #5d5d66;
+  font-weight: 500;
+  text-decoration: line-through;
+  text-decoration-color: rgba(255, 255, 255, 0.22);
+}
+
+.ban2note-page .b2rp-chip--blind {
+  border-color: rgba(110, 150, 205, 0.3);
+  background: rgba(70, 110, 165, 0.08);
+  color: #a8c4e8;
+}
+
+/* 红包桌：庄家注入底池的额外现金（头部标识 + 盲注列红包胶囊） */
+.ban2note-page .b2rp-meta--redpacket {
+  color: #e0a6a6;
+}
+
+.ban2note-page .b2rp-pos--redpacket {
+  background: rgba(185, 85, 85, 0.14);
+  border-color: rgba(220, 125, 125, 0.38);
+  color: #e8bcbc;
+}
+
+.ban2note-page .b2rp-chip--redpacket {
+  border-color: rgba(220, 125, 125, 0.32);
+  background: rgba(185, 85, 85, 0.1);
+  color: #e8bcbc;
+}
+
+.ban2note-page .b2rp-chip--win {
+  border-color: rgba(200, 170, 110, 0.6);
+  background: rgba(200, 170, 110, 0.08);
+  color: #e9d7a4;
+  font-weight: 700;
+}
+
+.ban2note-page .b2rp-chip--hero {
+  border-color: rgba(200, 170, 110, 0.45);
+}
+
+/* 播放中的当前动作：单元格金竖条 + 芯片金底反色 + 呼吸光晕；任意动作可点击跳转。
+   必须排在 .b2rp-chip 系列之后（同优先级，靠源顺序覆盖基础底色/描边） */
+.ban2note-page .b2rp-cell--now {
+  position: relative;
+  background: linear-gradient(90deg, rgba(200, 170, 110, 0.1), rgba(200, 170, 110, 0.02) 86%);
+  border-radius: 6px;
+}
+
+.ban2note-page .b2rp-cell--now::before {
+  content: "";
+  position: absolute;
+  left: -0.4rem;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  border-radius: 1px;
+  background: #c8aa6e;
+}
+
+.ban2note-page .b2rp-chip--now {
+  border-color: rgba(200, 170, 110, 0.95);
+  background: rgba(200, 170, 110, 0.26);
+  color: #f7ead0;
+  font-weight: 700;
+  animation: b2rp-now-pulse 1.5s ease-in-out infinite;
+}
+
+.ban2note-page .b2rp-empty {
+  padding: 0.15rem 0;
+  font-size: 0.625rem;
+  color: #4a4a52;
+}
+
+.ban2note-page .b2rp-street-cards {
+  display: flex;
+  align-items: center;
+  padding: 0.08rem 0;
+}
+
+/* 跑两次（run it twice）：① ② 双牌面 */
+.ban2note-page .b2rp-rit-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  align-items: flex-start;
+}
+
+.ban2note-page .b2rp-rit-row {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.ban2note-page .b2rp-rit-tag,
+.ban2note-page .ban2note-hands-board2-tag {
+  flex: none;
+  font-size: 0.625rem;
+  line-height: 1;
+  color: #c8aa6e;
+}
+
+/* ── 响应式：盈利矩阵详情卡与回放弹窗 */
+@media (min-width: 1500px) {
+  .ban2note-page .ban2note-pnl-stat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  /* 宽屏：详情卡脱离文档流钉在右侧，卡内滚动（头部吸顶） */
+  .ban2note-page .ban2note-pnl-wrap {
+    position: relative;
+  }
+
+  .ban2note-page .ban2note-pnl-wrap .ban2note-matrix--pnl {
+    flex: 0 0 auto;
+    width: min(40rem, 100% - 16.25rem);
+    max-width: none;
+  }
+
+  .ban2note-page .ban2note-pnl-detail {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: calc(min(40rem, 100% - 16.25rem) + 1.25rem);
+    min-width: 0;
+    max-width: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+  }
+
+  .ban2note-page .ban2note-pnl-detail > * {
+    flex: 0 0 auto;
+  }
+
+  /* 宽屏卡内滚动时置顶行跟随吸顶，× 始终可点 */
+  .ban2note-page .ban2note-pnl-detail-main-top {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    margin: -0.55rem -0.7rem 0;
+    padding: 0.55rem 0.7rem;
+    background: #19191b;
+    border-radius: 0.45rem 0.45rem 0 0;
+  }
+}
+
+@media (min-width: 1100px) and (max-width: 1399px) {
+  .ban2note-page .ban2note-pnl-wrap .ban2note-matrix--pnl {
+    width: min(34rem, 100% - 16.25rem);
+  }
+
+  .ban2note-page .ban2note-pnl-detail {
+    left: calc(min(34rem, 100% - 16.25rem) + 1.25rem);
+  }
+}
+
+@media (max-width: 1099px) {
+  .ban2note-page .ban2note-pnl-wrap {
+    flex-wrap: wrap;
+  }
+
+  .ban2note-page .ban2note-pnl-wrap .ban2note-matrix--pnl {
+    flex: 1 1 100%;
+    max-width: 44rem;
+  }
+
+  .ban2note-page .ban2note-pnl-detail {
+    flex: 1 1 100%;
+    max-width: none;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .ban2note-page .ban2note-matrix--pnl .ban2note-matrix-cell {
+    font-size: 0.44rem;
+  }
+
+  .ban2note-page .ban2note-matrix--pnl .ban2note-matrix-cell-val {
+    font-size: 0.4rem;
+  }
+
+  .ban2note-page .ban2note-matrix--pnl {
+    margin-inline: 0;
+  }
+
+  .ban2note-page .ban2note-hands-block {
+    padding: 0.85rem 0.75rem;
+  }
+
+  .ban2note-page .ban2note-hands-table th,
+  .ban2note-page .ban2note-hands-table td {
+    padding: 0.4rem 0.3rem;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 899px) {
+  .ban2note-page .b2rp-stage {
+    height: 380px;
+  }
+
+  .ban2note-page .b2rp-col {
+    flex: 1 0 142px;
+    min-width: 142px;
+  }
+}
+
+/* ==============================================
+   荣耀致谢滚动栏（CreditsRail）
+   仅 ≥1900px 宽屏出现：此时 96rem 居中容器两侧
+   各有 ≥216px 留白，把左留白划出 180px 给本栏。
+   容器 max-width 同步加宽一个「栏宽+列距」，
+   右侧结果区宽度在 1920 屏上保持不变。
+   ============================================== */
+.ban2note-page .ban2note-credits {
+  display: none;
+}
+
+@media (min-width: 1900px) {
+  .ban2note-page .ban2note-layout {
+    grid-template-columns: 11.25rem 380px 1fr;
+    max-width: calc(96rem + 11.25rem + 2rem);
+  }
+
+  .ban2note-page .ban2note-credits {
+    display: block;
+    position: sticky;
+    top: 4rem;
+  }
+}
+
+/* 标题：金色 letterspaced 小标 + 灰色英文副标，发丝分隔线 */
+.ban2note-page .ban2note-credits-head {
+  text-align: center;
+  padding-bottom: 0.85rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ban2note-page .ban2note-credits-title {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  color: #a88b46;
+}
+
+.ban2note-page .ban2note-credits-sub {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.625rem;
+  letter-spacing: 0.42em;
+  text-indent: 0.42em;
+  color: #71717a;
+}
+
+/* 滚动视窗：短名单高度自适应、长名单封顶在 clamp；上下渐隐遮罩。
+   max-height 而非 height 是关键：让 scrollHeight > clientHeight 的
+   溢出测量在静态（auto 高）与滚动（封顶高）两种状态下都成立 */
+.ban2note-page .ban2note-credits-window {
+  height: auto;
+  max-height: clamp(360px, 55vh, 640px);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+}
+
+.ban2note-page .ban2note-credits-track {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ban2note-page .ban2note-credits-track {
+    animation: ban2note-credits-scroll 44s linear infinite;
+  }
+
+  .ban2note-page .ban2note-credits:hover .ban2note-credits-track {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes ban2note-credits-scroll {
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+/* 减速动效偏好：停掉滚动、藏克隆列、恢复手动滚动 */
+@keyframes b2rp-now-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(200, 170, 110, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(200, 170, 110, 0.6), 0 0 10px rgba(200, 170, 110, 0.28);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ban2note-page .ban2note-credits-list--clone {
+    display: none;
+  }
+
+  .ban2note-page .ban2note-credits-window {
+    overflow-y: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+
+.ban2note-page .ban2note-credits-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+.ban2note-page .ban2note-credit-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.3rem;
+}
+
+/* 圆形头像：哑光底 + 发丝金环 + 极淡光晕，悬停金环提亮 */
+.ban2note-page .ban2note-credit-avatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #18181b;
+  border: 1px solid rgba(168, 139, 70, 0.45);
+  box-shadow: 0 0 0 3px rgba(168, 139, 70, 0.07);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.ban2note-page .ban2note-credit-item:hover .ban2note-credit-avatar {
+  border-color: rgba(196, 164, 85, 0.85);
+  box-shadow: 0 0 0 3px rgba(168, 139, 70, 0.14);
+}
+
+.ban2note-page .ban2note-credit-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 头像缺省占位：首字母金字 */
+.ban2note-page .ban2note-credit-mono {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #c4a455;
+}
+
+.ban2note-page .ban2note-credit-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #e4e4e7;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.ban2note-page .ban2note-credit-note {
+  font-size: 0.6875rem;
+  color: #a1a1aa;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* 名单不足一屏（CreditsRail 测量后加 --static）：
+   去渐隐遮罩、藏克隆列、停滚动动画（高度已由 max-height 自适应） */
+.ban2note-page .ban2note-credits-window--static {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.ban2note-page .ban2note-credits-window--static .ban2note-credits-list--clone {
+  display: none;
+}
+
+/* 克隆列隐藏后 track 高度只剩单份名单，-50% 位移会漂移，静态模式必须停动画 */
+.ban2note-page .ban2note-credits-window--static .ban2note-credits-track {
+  animation: none;
+}
+
+
+/* ==============================================
+   国庆靓牌速查：侧栏大按钮 + 结果弹窗
+   （哑光深底、发丝金线，节日感走哑光暖红，不做游戏风）
+   ============================================== */
+.ban2note-page .ban2note-monster-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  width: 100%;
+  padding: 1.1rem 1rem 1rem;
+  background: linear-gradient(180deg, #221316, #150c0e);
+  border: 1px solid rgba(200, 170, 110, 0.28);
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.ban2note-page .ban2note-monster-btn:hover {
+  border-color: rgba(200, 170, 110, 0.65);
+  box-shadow: 0 0 0 1px rgba(200, 170, 110, 0.18), 0 8px 28px rgba(0, 0, 0, 0.45);
+  transform: translateY(-1px);
+}
+
+.ban2note-page .ban2note-monster-btn:active {
+  transform: translateY(0);
+}
+
+.ban2note-page .ban2note-monster-btn-label {
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #e9d7a4;
+}
+
+.ban2note-page .ban2note-monster-btn-sub {
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  color: #9c7f52;
+}
+
+.ban2note-page .ban2-monster-panel {
+  max-width: 640px;
+}
+
+.ban2note-page .ban2-monster-body {
+  padding: 0.5rem 1rem 1.25rem;
+}
+
+.ban2note-page .ban2-monster-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.ban2note-page .ban2-monster-table th {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #c8aa6e;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  white-space: nowrap;
+}
+
+.ban2note-page .ban2-monster-table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #e4e4e7;
+  font-variant-numeric: tabular-nums;
+}
+
+.ban2note-page .ban2-monster-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.ban2note-page .ban2-monster-table tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ban2note-page .ban2-monster-id {
+  overflow-wrap: anywhere;
+  color: #a1a1aa;
+}
+
+.ban2note-page .ban2-monster-holder {
+  color: #a1a1aa;
+  overflow-wrap: anywhere;
+}
+
+.ban2note-page .ban2-monster-badge {
+  display: inline-block;
+  padding: 0.18rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+/* 皇家同花顺：实心金 */
+.ban2note-page .ban2-monster-badge--royal {
+  background: linear-gradient(180deg, #d9bc7d, #b3924f);
+  border: 1px solid rgba(233, 215, 164, 0.5);
+  color: #1c1408;
+}
+
+/* 同花顺：亮金描边 */
+.ban2note-page .ban2-monster-badge--sf {
+  background: transparent;
+  border: 1px solid rgba(200, 170, 110, 0.6);
+  color: #e9d7a4;
+}
+
+/* 四条：暗金描边 */
+.ban2note-page .ban2-monster-badge--quads {
+  background: transparent;
+  border: 1px solid rgba(200, 170, 110, 0.3);
+  color: #c8aa6e;
+}
+
+.ban2note-page .ban2-monster-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 3.5rem 1.5rem 3.75rem;
+  text-align: center;
+}
+
+.ban2note-page .ban2-monster-empty-icon {
+  font-size: 2rem;
+  line-height: 1;
+  color: #6b5a38;
+}
+
+.ban2note-page .ban2-monster-empty-title {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #c8aa6e;
+}
+
+.ban2note-page .ban2-monster-empty-sub {
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: #8f8f98;
+  max-width: 26rem;
+}
+
+/* 靓牌表格「回放」列：发丝金线小按钮，与徽标同族 */
+.ban2note-page .ban2-monster-replay-col {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.ban2note-page .ban2-monster-replay-btn {
+  padding: 0.22rem 0.6rem;
+  background: transparent;
+  border: 1px solid rgba(200, 170, 110, 0.3);
+  border-radius: 6px;
+  color: #c8aa6e;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+.ban2note-page .ban2-monster-replay-btn:hover {
+  border-color: rgba(200, 170, 110, 0.7);
+  color: #e9d7a4;
+  box-shadow: 0 0 0 1px rgba(200, 170, 110, 0.15);
+}
+
+/* 靓牌弹窗底部节日落款小字 */
+.ban2note-page .ban2-monster-foot {
+  padding: 0.55rem 1rem 0.7rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  color: #9c7f52;
+  text-align: center;
+}
+
+/* 手机端筛选：横向滚动，不再把 NL1000 / UTG+2 截成省略号 */
+@media (max-width: 767px) {
+  .ban2note-page .ban2note-filter-col {
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .ban2note-page .ban2note-filter-title {
+    padding-top: 0;
+    min-width: 0;
+  }
+  .ban2note-page .ban2note-chips {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    grid-template-columns: none;
+    gap: 0.35rem;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  .ban2note-page .ban2note-chip {
+    overflow: visible;
+    text-overflow: clip;
+    padding: 0.35rem 0.55rem;
+  }
+}
+
+/* 手机端单列布局：允许内部横向滚动，不让筛选行把整页撑宽 */
+@media (max-width: 1023px) {
+  .ban2note-page .ban2note-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ban2note-page .ban2note-sidebar {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .ban2note-page .ban2note-filter-col {
+    min-width: 0;
+    width: 100%;
+  }
+  .ban2note-page .ban2note-chips {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .ban2note-page .ban2note-chips {
+    max-width: calc(100vw - 3rem);
+  }
+}
+
+/* 与顶栏 logo 左侧对齐：页面内容左缘 = 导航内容左缘 */
+@media (max-width: 1899px) {
+  .ban2note-page .ban2note-layout {
+    max-width: none;
+    margin: 0;
+    padding-left: max(1.5rem, calc((100% - 80rem) / 2 + 1.5rem));
+    padding-right: 1.5rem;
+  }
+}
+
+/* ≥1900 有 CreditsRail，实测标题比 logo 左 22px，补齐 */
+@media (min-width: 1900px) {
+  .ban2note-page .ban2note-layout {
+    padding-left: calc(1.5rem + 1.375rem);
+  }
+}
+
+/* ── 会员中心（登录/注册/我的手牌库）b2c- ── */
+.ban2note-page .b2c-panel {
+  max-width: 520px;
+}
+
+.ban2note-page .b2c-auth {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.ban2note-page .b2c-tabs {
+  display: flex;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.ban2note-page .b2c-tab {
+  flex: 1;
+  padding: 0.5rem 0;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.ban2note-page .b2c-tab--on {
+  background: rgba(168, 139, 70, 0.15);
+  color: #c4a455;
+  font-weight: 600;
+}
+
+.ban2note-page .b2c-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.ban2note-page .b2c-input {
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.ban2note-page .b2c-input:focus {
+  border-color: rgba(168, 139, 70, 0.6);
+}
+
+.ban2note-page .b2c-primary {
+  padding: 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(168, 139, 70, 0.55);
+  background: linear-gradient(180deg, rgba(168, 139, 70, 0.32), rgba(168, 139, 70, 0.18));
+  color: #e6cf96;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.ban2note-page .b2c-primary:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+
+.ban2note-page .b2c-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ban2note-page .b2c-note {
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.ban2note-page .b2c-err {
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(220, 80, 80, 0.35);
+  background: rgba(220, 80, 80, 0.1);
+  color: #e89393;
+  font-size: 0.8125rem;
+}
+
+.ban2note-page .b2c-lib {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.ban2note-page .b2c-lib-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ban2note-page .b2c-user {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.ban2note-page .b2c-quota {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.ban2note-page .b2c-quota-bar {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.ban2note-page .b2c-quota-bar > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #a88b46, #c4a455);
+}
+
+.ban2note-page .b2c-empty {
+  padding: 1.5rem 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.ban2note-page .b2c-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 44vh;
+  overflow-y: auto;
+}
+
+.ban2note-page .b2c-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ban2note-page .b2c-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.ban2note-page .b2c-item-name {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.88);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ban2note-page .b2c-item-meta {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.ban2note-page .b2c-item-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.ban2note-page .b2c-ghost {
+  padding: 0.3rem 0.6rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(168, 139, 70, 0.4);
+  background: transparent;
+  color: #c4a455;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.ban2note-page .b2c-ghost:hover:not(:disabled) {
+  background: rgba(168, 139, 70, 0.12);
+}
+
+.ban2note-page .b2c-ghost:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ban2note-page .b2c-ghost--danger {
+  border-color: rgba(220, 80, 80, 0.35);
+  color: #d98c8c;
+}
+
+.ban2note-page .b2c-ghost--danger:hover:not(:disabled) {
+  background: rgba(220, 80, 80, 0.1);
+}
+
+.ban2note-page .b2c-save-state {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.ban2note-page .b2c-save-state--ok {
+  color: #a3c98a;
+}
+
+.ban2note-page .b2c-save-state--err {
+  color: #e89393;
+}
+
+.ban2note-page .b2c-entry {
+  margin-top: 0.6rem;
+}
+
+/* 多选载入手牌库 */
+.ban2note-page .b2c-item-pick {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  flex: 1;
+  cursor: pointer;
+}
+
+.ban2note-page .b2c-item-pick input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  accent-color: #c4a455;
+  cursor: pointer;
+}
+
+.ban2note-page .b2c-item--sel {
+  border-color: rgba(168, 139, 70, 0.55);
+  background: rgba(168, 139, 70, 0.08);
+}
+
+.ban2note-page .b2c-loadbar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.ban2note-page .b2c-loadbtn {
+  flex: 1;
+}
+
+/* 存云命名弹层 + 行内改名 */
+.ban2note-page .b2c-saveask {
+  max-width: 400px;
+}
+
+.ban2note-page .b2c-saveask-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.ban2note-page .b2c-rename {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.ban2note-page .b2c-rename-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.8rem;
+}
+
+/* 会员中心入口（手牌库底部） */
+.ban2note-page .b2c-memlink {
+  color: #d4a853;
+  text-decoration: none;
+  font-size: 0.85rem;
+  border-bottom: 1px solid rgba(168, 139, 70, 0.4);
+  padding-bottom: 1px;
+  transition: border-color 0.2s, color 0.2s;
+}
+.ban2note-page .b2c-memlink:hover {
+  color: #e6bd6a;
+  border-color: rgba(212, 168, 83, 0.8);
+}
